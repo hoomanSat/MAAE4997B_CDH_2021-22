@@ -6,6 +6,7 @@
 #include "Demo/demo_sd.h"
 
 #include "Tests/I2Ctest.h"
+#include "Tests/I2CslaveTest.h"
 #include "Tests/SPI_FRAM_RTCtest.h"
 #include "Tests/FloatingPointTest.h"
 #include "Tests/ADCtest.h"
@@ -80,6 +81,7 @@ Boolean selectAndExecuteTest() {
 	printf("\t 13) Board Test \n\r");
 	printf("\t 14) Time Test \n\r");
 	printf("\t 15) Checksum Test \n\r");
+	printf("\t 16) I2C Slave Test \n\r");
 
 	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
 
@@ -129,6 +131,8 @@ Boolean selectAndExecuteTest() {
 	case 15:
 		offerMoreTests = checksumTest();
 		break;
+	case 16:
+		offerMoreTests = I2CslaveTest();
 	default:
 		break;
 	}
