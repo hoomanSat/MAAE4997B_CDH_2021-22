@@ -260,6 +260,7 @@ Boolean I2Ctest() {
 		TRACE_FATAL("\n\r I2Ctest: I2C_start returned: %d! \n\r", retValInt);
 	}
 
+	// dante comment
 	//xTaskGenericCreate(taskQueuedI2Ctest1, (const signed char*)"taskQueuedI2Ctest1", 1024, NULL, configMAX_PRIORITIES-2, &taskQueuedI2Ctest1Handle, NULL, NULL);
 	//xTaskGenericCreate(taskQueuedI2Ctest2, (const signed char*)"taskQueuedI2Ctest2", 1024, NULL, 2, &taskQueuedI2Ctest2Handle, NULL, NULL);
 	//xTaskGenericCreate(taskQueuedI2Ctest3, (const signed char*)"taskQueuedI2Ctest3", 1024, NULL, 2, &taskQueuedI2Ctest3Handle, NULL, NULL);
