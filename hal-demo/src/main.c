@@ -133,6 +133,7 @@ Boolean selectAndExecuteTest() {
 		break;
 	case 16:
 		offerMoreTests = I2CslaveTest();
+		break;
 	default:
 		break;
 	}

@@ -1,0 +1,16 @@
+## THE COMMAND TO CONFIG WAF ##
+$
+./waf configure --toolchain=arm-none-eabi- --with-os=freertos --prefix=install --include=C:/ISIS/MAAE4997B_CDH/hal/at91/include/,C:/ISIS/MAAE4997B_CDH/hal/hal/include/,C:/ISIS/MAAE4997B_CDH/hal/hcc/include/,C:/ISIS/MAAE4997B_CDH/hal/freertos/include/freertos_csp/ --check-c-compiler=gcc --install-csp
+
+./waf configure --toolchain=arm-none-eabi- --with-os=windows --prefix=install --check-c-compiler=gcc --install-csp
+
+./waf configure --toolchain=arm-none-eabi- --with-os=freertos --prefix=install --include=C:/ISIS/MAAE4997B_CDH/hal/at91/include/,C:/ISIS/MAAE4997B_CDH/hal/freertos/include/freertos_csp/ --check-c-compiler=gcc --install-csp --enable-shlib
+
+./waf configure --toolchain=arm-none-eabi- --with-os=freertos --prefix=install --include=C:/ISIS/MAAE4997B_CDH/hal/at91/include/,C:/ISIS/MAAE4997B_CDH/hal/freertos/include/ --check-c-compiler=gcc --enable-rdp --enable-crc32 --enable-hmac --install-csp --enable-shlib
+
+##IMPORTANT##
+hal/freertos/include/freertos_csp/  
+was made to have custom version of inclusions that work with the CSP build.
+
+Also the wscript file was edited to append gcc.exe and ar.exe to the end of the toolchain prefix otherwise it wont work.
+Also I added in "-Dat91sam9g20" to the wscrip CFLAGS so that it informs the board.h files of the correct chipset
