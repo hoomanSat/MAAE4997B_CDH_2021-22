@@ -42,14 +42,14 @@ void taskI2CslaveTest() {
 		bytesRead = I2Cslave_read(I2CcommandBuffer);
 		if(bytesRead < 0) {
 			// An error occurred!
-			printf("taskI2CslaveTest: I2Cslave_read returned %d. \n", bytesRead);
+			TRACE_ERROR_WP("taskI2CslaveTest: I2Cslave_read returned %d. \n", bytesRead);
 			continue;
 		}
 
 		commandCount++;
 
 		// Print out the received command
-		printf("taskI2CslaveTest: received command: \n\r");
+		TRACE_DEBUG_WP("taskI2CslaveTest: received command: \n\r");
 		UTIL_DbguDumpArrayBytes(I2CcommandBuffer, bytesRead);
 
 		// Check which command was received
@@ -91,7 +91,7 @@ void taskI2CslaveTest() {
 
 Boolean I2CslaveTest() {
 	int retValInt = 0;
-	xTaskHandle taskI2CslaveTestHandle;
+	//xTaskHandle taskI2CslaveTestHandle;
 	unsigned int commandListSize = sizeof(CommandList) / sizeof(CommandList[0]);
 
 	retValInt = I2Cslave_start(0x5D, CommandList, commandListSize);
@@ -99,7 +99,8 @@ Boolean I2CslaveTest() {
 		TRACE_FATAL("\n\r I2CslaveTest: I2Cslave_start returned: %d! \n\r", retValInt);
 	}
 
-	xTaskGenericCreate(taskI2CslaveTest, (const signed char*)"taskI2CslaveTest", 1024, NULL, 2, &taskI2CslaveTestHandle, NULL, NULL);
+	//xTaskGenericCreate(taskI2CslaveTest, (const signed char*)"taskI2CslaveTest", 1024, NULL, 2, &taskI2CslaveTestHandle, NULL, NULL);
+	taskI2CslaveTest();
 
 	return TRUE;
 }

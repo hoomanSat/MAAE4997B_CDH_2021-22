@@ -29,7 +29,7 @@ void I2Ccallback(SystemContext context, xSemaphoreHandle semaphore) {
 	else {
 		xSemaphoreGiveFromISR(semaphore, &flag);
 	}
-	//TRACE_DEBUG(" I2C_callbackTask1: Transfer complete. \n\r");
+	//TRACE_DEBUG_WP(" I2C_callbackTask1: Transfer complete. \n\r");
 }
 
 int doBlockingI2CTransfer(xSemaphoreHandle semaphore, I2CgenericTransfer *tx) {
@@ -95,7 +95,7 @@ void taskQueuedI2Ctest1() {
 	I2CtransferStatus txResult;
 	xSemaphoreHandle txSemaphore = NULL;
 	unsigned char readData[32] = {0}, writeData[32] = {0};
-	TRACE_DEBUG("\n\r taskQueuedI2Ctest1: Starting. \n\r");
+	TRACE_DEBUG_WP("\n\r taskQueuedI2Ctest1: Starting. \n\r");
 
 	writeData[0] = 0x37;
 	//WRITE DATA: EF 02 04 06 08 0A 0C 0E 10-12 14 16 18 1A 1C 1E 20-22 24 26 28 2A 2C 2E 30-32 34 36 38 3A 3C 3E
@@ -121,7 +121,7 @@ void taskQueuedI2Ctest1() {
 	i2cTx.semaphore = txSemaphore;
 
 	//while(1) {
-		TRACE_DEBUG(" taskQueuedI2Ctest1 \n\r");
+		TRACE_DEBUG_WP(" taskQueuedI2Ctest1 \n\r");
 
 		retValInt = doBlockingI2CTransfer(txSemaphore, &i2cTx);
 		if(retValInt != 0) {
@@ -134,15 +134,15 @@ void taskQueuedI2Ctest1() {
 			}
 		}
 
-		TRACE_DEBUG(" taskQueuedI2Ctest1: received back: \n\r");
-		TRACE_DEBUG("(%02X) ", readData[0]);
+		TRACE_DEBUG_WP(" taskQueuedI2Ctest1: received back: \n\r");
+		TRACE_DEBUG_WP("(%02X) ", readData[0]);
 		for(i=1; i<i2cTx.readSize; i++) {
-			TRACE_DEBUG("%02X ", readData[i]);
+			TRACE_DEBUG_WP("%02X ", readData[i]);
 			//writeData[i]++;
 		}
 		//writeData[i]++;
 
-		TRACE_DEBUG(" \n\r\n\r");
+		TRACE_DEBUG_WP(" \n\r\n\r");
 		vTaskDelay(5);
 	//}
 }
@@ -154,7 +154,7 @@ void taskQueuedI2Ctest2() {
 	I2CtransferStatus txResult;
 	xSemaphoreHandle txSemaphore = NULL;
 	unsigned char readData[64] = {0}, writeData[64] = {0};
-	TRACE_DEBUG("\n\r taskQueuedI2Ctest2: Starting. \n\r");
+	TRACE_DEBUG_WP("\n\r taskQueuedI2Ctest2: Starting. \n\r");
 
 	writeData[0] = 0xEF;
 	for(i=1; i<sizeof(writeData); i++) {
@@ -179,7 +179,7 @@ void taskQueuedI2Ctest2() {
 	i2cTx.semaphore = txSemaphore;
 
 	while(1) {
-		//TRACE_DEBUG(" taskQueuedI2Ctest2 \n\r");
+		//TRACE_DEBUG_WP(" taskQueuedI2Ctest2 \n\r");
 
 		retValInt = doBlockingI2CTransfer(txSemaphore, &i2cTx);
 		if(retValInt != 0) {
@@ -192,15 +192,15 @@ void taskQueuedI2Ctest2() {
 			}
 		}
 
-		//TRACE_DEBUG(" taskQueuedI2Ctest2: received back: \n\r");
-		//TRACE_DEBUG("0x%X ", readData[0]);
+		//TRACE_DEBUG_WP(" taskQueuedI2Ctest2: received back: \n\r");
+		//TRACE_DEBUG_WP("0x%X ", readData[0]);
 		for(i=1; i<i2cTx.readSize; i++) {
-			//TRACE_DEBUG("0x%X ", readData[i]);
+			//TRACE_DEBUG_WP("0x%X ", readData[i]);
 			writeData[i]++;
 		}
 		writeData[i]++;
 
-		//TRACE_DEBUG(" \n\r\n\r");
+		//TRACE_DEBUG_WP(" \n\r\n\r");
 		vTaskDelay(5);
 	}
 }
@@ -210,7 +210,7 @@ void taskQueuedI2Ctest3() {
 	unsigned int i;
 	I2Ctransfer i2cTx;
 	unsigned char readData[64] = {0}, writeData[64] = {0};
-	TRACE_DEBUG("\n\r taskQueuedI2Ctest3: Starting. \n\r");
+	TRACE_DEBUG_WP("\n\r taskQueuedI2Ctest3: Starting. \n\r");
 
 	writeData[0] = 0x33;
 	for(i=1; i<sizeof(writeData); i++) {
@@ -222,30 +222,57 @@ void taskQueuedI2Ctest3() {
 	i2cTx.readSize = 13;
 	i2cTx.writeData = writeOut;
 	i2cTx.writeSize = 13;
-	i2cTx.writeReadDelay = 2;
+	i2cTx.writeReadDelay = 1;
 	i2cTx.slaveAddress = 0x41;
 
 
-		TRACE_DEBUG(" taskQueuedI2Ctest3 \n\r");
+		TRACE_DEBUG_WP("To 41 Sending I2CTransfer via writeRead() \n\r");
 
 		retValInt = I2C_writeRead(&i2cTx); // Use I2C_writeRead instead of our own implementation.
 		if(retValInt != 0) {
-			TRACE_WARNING("\n\r taskQueuedI2Ctest3: I2C_writeRead returned: %d! \n\r", retValInt);
-			while(1);
+			TRACE_WARNING_WP("\n\r taskQueuedI2Ctest3: I2C_writeRead returned with code: %d! \n\r", retValInt);
+			return;
 		}
 
-		TRACE_DEBUG(" taskQueuedI2Ctest3: received back: \n\r");
-		printf("%c", readData[0]);
+		TRACE_DEBUG_WP(" Message received back: \n\r");
+		TRACE_DEBUG_WP("%c", readData[0]);
 		for(i=1; i<i2cTx.readSize; i++) {
-			printf("%c", readData[i]);
+			TRACE_DEBUG_WP("%c", readData[i]);
 		}
-		printf("\n");
-		printf("%02X", readData[0]);
+		TRACE_DEBUG_WP("\n");
+		TRACE_DEBUG_WP("%02X", readData[0]);
 		for(i=1; i<i2cTx.readSize; i++) {
-			printf("%02X", readData[i]);
+			TRACE_DEBUG_WP("%02X", readData[i]);
 		}
-		printf("\n\r");
-		TRACE_DEBUG(" \n\r\n\r");
+		TRACE_DEBUG_WP("\n\r");
+		TRACE_DEBUG_WP(" \n\r\n\r");
+
+		//---
+		/*
+		TRACE_DEBUG_WP("To 42 Sending I2CTransfer via writeRead() \n\r");
+		i2cTx.slaveAddress = 0x42;
+
+		retValInt = I2C_writeRead(&i2cTx); // Use I2C_writeRead instead of our own implementation.
+		if(retValInt != 0) {
+			TRACE_WARNING_WP("\n\r taskQueuedI2Ctest3: I2C_writeRead returned with code: %d! \n\r", retValInt);
+			return;
+		}
+
+		TRACE_DEBUG_WP(" Message received back: \n\r");
+		TRACE_DEBUG_WP("%c", readData[0]);
+		for(i=1; i<i2cTx.readSize; i++) {
+			TRACE_DEBUG_WP("%c", readData[i]);
+		}
+		TRACE_DEBUG_WP("\n");
+		TRACE_DEBUG_WP("%02X", readData[0]);
+		for(i=1; i<i2cTx.readSize; i++) {
+			TRACE_DEBUG_WP("%02X", readData[i]);
+		}
+		TRACE_DEBUG_WP("\n\r");
+		TRACE_DEBUG_WP(" \n\r\n\r");
+		//vTaskDelay(5);
+		*/
+
 		//vTaskDelay(5);
 
 }
@@ -255,7 +282,7 @@ Boolean I2Ctest() {
 	//xTaskHandle taskQueuedI2Ctest3Handle;//, taskQueuedI2Ctest2Handle, taskQueuedI2Ctest3Handle;
 
 	//Our I2c can do 400 khz max. FAST MODE
-	retValInt = I2C_start(400000, 5000);//2nd param can be 'portMAX_DELAY' for debug step through to prevent timeout.
+	retValInt = I2C_start(400000, 1000);//2nd param can be 'portMAX_DELAY' for debug step through to prevent timeout.
 	if(retValInt != 0) {
 		TRACE_FATAL("\n\r I2Ctest: I2C_start returned: %d! \n\r", retValInt);
 	}
