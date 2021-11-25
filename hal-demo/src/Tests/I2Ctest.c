@@ -273,7 +273,7 @@ void taskQueuedI2Ctest3() {
 		//vTaskDelay(5);
 		*/
 
-		vTaskDelay(5);
+		csp_sleep_ms(5);
 }
 
 Boolean I2Ctest() {

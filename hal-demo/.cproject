@@ -141,7 +141,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="examples/csp_arch.c|examples/zmqproxy.c|examples/csp_server_client.c|cspSrc/rtable/csp_rtable_static.c|cspSrc/bindings/python|cspSrc/arch/windows|cspSrc/drivers/usart/usart_windows.c|cspSrc/drivers/can/can_socketcan.c|cspSrc/drivers/usart/usart_linux.c|cspSrc/arch/macosx|cspSrc/arch/posix" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="cspSrc/drivers/can/can_socketcan.c|examples/csp_arch.c|examples/zmqproxy.c|examples/csp_server_client.c|cspSrc/rtable/csp_rtable_static.c|cspSrc/bindings/python|cspSrc/arch/windows|cspSrc/drivers/usart/usart_windows.c|cspSrc/drivers/usart/usart_linux.c|cspSrc/arch/macosx|cspSrc/arch/posix" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -276,7 +276,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="examples/csp_arch.c|examples/zmqproxy.c|examples/csp_server_client.c|cspSrc/rtable/csp_rtable_static.c|cspSrc/drivers/can/can_socketcan.c|cspSrc/drivers/usart/usart_windows.c|cspSrc/drivers/usart/usart_linux.c|cspSrc/arch/windows|cspSrc/arch/posix|cspSrc/arch/macosx|cspSrc/bindings/python" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+						<entry excluding="cspSrc/drivers/can/can_socketcan.c|examples/csp_arch.c|examples/zmqproxy.c|examples/csp_server_client.c|cspSrc/rtable/csp_rtable_static.c|cspSrc/drivers/usart/usart_windows.c|cspSrc/drivers/usart/usart_linux.c|cspSrc/arch/windows|cspSrc/arch/posix|cspSrc/arch/macosx|cspSrc/bindings/python" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

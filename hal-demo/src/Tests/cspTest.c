@@ -103,13 +103,13 @@ Boolean cspTest() {
 	/* Start server thread */
 	if ((server_address == 255) ||  /* no server address specified, I must be server */
 		(default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
-		csp_thread_create(task_server, "SERVER", 1000, NULL, 0, NULL);
+		//csp_thread_create(task_server, "SERVER", 1000, NULL, 0, NULL);
 	}
 
 	/* Start client thread */
 	if ((server_address != 255) ||  /* server address specified, I must be client */
 		(default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
-		csp_thread_create(task_client, "CLIENT", 1000, NULL, 0, NULL);
+		//csp_thread_create(task_client, "CLIENT", 1000, NULL, 0, NULL);
 	}
 
 	/* Wait for execution to end (ctrl+c) */
