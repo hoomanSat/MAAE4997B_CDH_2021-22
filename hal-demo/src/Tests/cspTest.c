@@ -6,6 +6,10 @@
  */
 
 #include "cspTest.h"
+#include <csp/drivers/i2c.h>
+
+#define I2C_SPEED 			400000
+#define I2C_TIMEOUT 		1000
 
 /* Server port, the port the server listens on for incoming connections from the client. */
 #define MY_SERVER_PORT		10
@@ -22,7 +26,6 @@ Boolean cspTest() {
 	//Startup CSP Test
 	uint8_t address = 1;
 	csp_debug_level_t debug_level = CSP_INFO;
-	const char * i2c_device = NULL;
 
 	//Need to set the rTABLE! -ex. "0/0 AX100, 0/2 I2C, 6/5 CAN"
 	const char * rtable = NULL;
@@ -49,34 +52,12 @@ Boolean cspTest() {
 
 	/* Add interface(s) */
 	csp_iface_t * default_iface = NULL;
-
-	csp_I2C_conf_t conf = {
-		.i2cBusSpeed_Hz = 400000,
-		.i2cTransferTimeout = 115200};
-	error = csp_I2C_start_and_add_I2C_interface(&conf, CSP_IF_I2C_DEFAULT_NAME,  &default_iface);
+	error = csp_I2C_start_and_add_I2C_interface(I2C_SPEED, I2C_TIMEOUT, CSP_IF_I2C_DEFAULT_NAME,  &default_iface);
 	if (error != CSP_ERR_NONE) {
 		csp_log_error("failed to add I2C interface, error: %d", error);
 		exit(1);
 	}
 
-#if (CSP_HAVE_LIBSOCKETCAN)
-	if (can_device) {
-		error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, 0, false, &default_iface);
-		if (error != CSP_ERR_NONE) {
-			csp_log_error("failed to add CAN interface [%s], error: %d", can_device, error);
-			exit(1);
-		}
-	}
-#endif
-#if (CSP_HAVE_LIBZMQ)
-	if (zmq_device) {
-		error = csp_zmqhub_init(csp_get_address(), zmq_device, 0, &default_iface);
-		if (error != CSP_ERR_NONE) {
-			csp_log_error("failed to add ZMQ interface [%s], error: %d", zmq_device, error);
-			exit(1);
-		}
-	}
-#endif
 
 	if (rtable) {
 		error = csp_rtable_load(rtable);
