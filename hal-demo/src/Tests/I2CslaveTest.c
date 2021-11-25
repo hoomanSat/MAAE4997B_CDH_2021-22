@@ -91,7 +91,7 @@ void taskI2CslaveTest() {
 
 Boolean I2CslaveTest() {
 	int retValInt = 0;
-	//xTaskHandle taskI2CslaveTestHandle;
+	xTaskHandle taskI2CslaveTestHandle;
 	unsigned int commandListSize = sizeof(CommandList) / sizeof(CommandList[0]);
 
 	retValInt = I2Cslave_start(0x5D, CommandList, commandListSize);
@@ -99,8 +99,8 @@ Boolean I2CslaveTest() {
 		TRACE_FATAL("\n\r I2CslaveTest: I2Cslave_start returned: %d! \n\r", retValInt);
 	}
 
-	//xTaskGenericCreate(taskI2CslaveTest, (const signed char*)"taskI2CslaveTest", 1024, NULL, 2, &taskI2CslaveTestHandle, NULL, NULL);
-	taskI2CslaveTest();
+	xTaskGenericCreate(taskI2CslaveTest, (const signed char*)"taskI2CslaveTest", 1024, NULL, configMAX_PRIORITIES-2, &taskI2CslaveTestHandle, NULL, NULL);
+	//taskI2CslaveTest();
 
-	return TRUE;
+	return FALSE;
 }

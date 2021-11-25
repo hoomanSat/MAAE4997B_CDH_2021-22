@@ -21,6 +21,7 @@
 #include "Tests/checksumTest.h"
 #include "Tests/SDCardTest.h"
 #include "Tests/FreeRTOSTest.h"
+#include "Tests/cspTest.h"
 
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>
@@ -85,8 +86,9 @@ Boolean selectAndExecuteTest() {
 	printf("----- CuSAT Additions -----\n\r");
 	printf("\t 16) I2C Slave Test \n\r");
 	printf("\t 17) FreeRTOS Test \n\r");
+	printf("\t 18) CSP-AX100 Test \n\r");
 
-	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 17) == 0);
+	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 18) == 0);
 
 	switch(selection) {
 	case 1:
@@ -139,6 +141,9 @@ Boolean selectAndExecuteTest() {
 		break;
 	case 17:
 		offerMoreTests = freeRTOSTest();
+		break;
+	case 18:
+		offerMoreTests = cspTest();
 		break;
 	default:
 		break;

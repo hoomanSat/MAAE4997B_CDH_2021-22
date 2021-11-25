@@ -7,16 +7,6 @@
 
 #include <Tests/FreeRTOSTest.h>
 
-#include <csp/csp_debug.h>
-#include <csp/arch/csp_thread.h>
-#include <csp/arch/csp_clock.h>
-#include <csp/arch/csp_time.h>
-#include <csp/arch/csp_malloc.h>
-#include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
-
-#include <stdlib.h>
-
 static bool thread_executed = false;
 
 void csp_assert_fail_action(const char *assertion, const char *file, int line) {

@@ -273,13 +273,12 @@ void taskQueuedI2Ctest3() {
 		//vTaskDelay(5);
 		*/
 
-		//vTaskDelay(5);
-
+		vTaskDelay(5);
 }
 
 Boolean I2Ctest() {
 	int retValInt = 0;
-	//xTaskHandle taskQueuedI2Ctest3Handle;//, taskQueuedI2Ctest2Handle, taskQueuedI2Ctest3Handle;
+	xTaskHandle taskQueuedI2Ctest3Handle;//, taskQueuedI2Ctest2Handle, taskQueuedI2Ctest3Handle;
 
 	//Our I2c can do 400 khz max. FAST MODE
 	retValInt = I2C_start(400000, 1000);//2nd param can be 'portMAX_DELAY' for debug step through to prevent timeout.
@@ -289,7 +288,7 @@ Boolean I2Ctest() {
 
 	//xTaskGenericCreate(taskQueuedI2Ctest1, (const signed char*)"taskQueuedI2Ctest1", 1024, NULL, configMAX_PRIORITIES-2, &taskQueuedI2Ctest1Handle, NULL, NULL);
 	//xTaskGenericCreate(taskQueuedI2Ctest2, (const signed char*)"taskQueuedI2Ctest2", 1024, NULL, 2, &taskQueuedI2Ctest2Handle, NULL, NULL);
-	//xTaskGenericCreate(taskQueuedI2Ctest3, (const signed char*)"taskQueuedI2Ctest3", 1024, NULL, 2, &taskQueuedI2Ctest3Handle, NULL, NULL);
-	taskQueuedI2Ctest3();
-	return TRUE;
+	xTaskGenericCreate(taskQueuedI2Ctest3, (const signed char*)"taskQueuedI2Ctest3", 1024, NULL, configMAX_PRIORITIES-2, &taskQueuedI2Ctest3Handle, NULL, NULL);
+	//taskQueuedI2Ctest3();
+	return FALSE;
 }
