@@ -8,15 +8,7 @@
 extern "C" {
 #endif
 
-/**
-   I2C configuration.
-   @see I2C_start()
-*/
-typedef struct csp_I2C_conf {
-	uint32_t i2cBusSpeed_Hz;
-	uint32_t i2cTransferTimeout;
-} csp_I2C_conf_t;
-
+int csp_I2C_start_and_add_I2C_interface(unsigned int i2cBusSpeed_Hz,unsigned int i2cTransferTimeout, const char * ifname, csp_iface_t ** return_iface);
 
 #ifdef __cplusplus
 }
