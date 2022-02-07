@@ -80,7 +80,8 @@ Boolean selectAndExecuteTest() {
 	printf("\t 13) Board Test \n\r");
 	printf("\t 14) Time Test \n\r");
 	printf("\t 15) Checksum Test \n\r");
-	printf("\t 16) I2C Slave Test \n\r");
+	printf("\t 16) EPS Telemetry Test \n\r");
+	printf("\t 17) I2C Slave Test \n\r");
 
 	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
 
@@ -131,6 +132,9 @@ Boolean selectAndExecuteTest() {
 		offerMoreTests = checksumTest();
 		break;
 	case 16:
+		offerMoreTests = EPSTelemetryTest();
+		break;
+	case 17:
 		offerMoreTests = I2CslaveTest();
 	default:
 		break;

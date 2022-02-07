@@ -1,8 +1,8 @@
 /*
- * I2Ctest.h
+ * EPSTelemetryTest.h
  *
- *  Created on: 23-Jan-2013
- *      Author: Akhil Piplani
+ *  Created on: 2022-02-07
+ *      Author: Dante Corsi
  */
 
 #ifndef I2CTEST_H_
@@ -10,6 +10,6 @@
 
 #include <hal/boolean.h>
 
-Boolean I2Ctest();
+Boolean EPSTelemetryTest();
 
 #endif /* I2CTEST_H_ */
