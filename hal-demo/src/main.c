@@ -1,10 +1,9 @@
 /*
  * main.c
- *      Author: Akhil
+ * Dante Corsi
  */
 
 #include "Demo/demo_sd.h"
-
 #include "Tests/I2Ctest.h"
 #include "Tests/I2CslaveTest.h"
 #include "Tests/SPI_FRAM_RTCtest.h"
