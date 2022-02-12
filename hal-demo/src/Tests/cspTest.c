@@ -2,7 +2,7 @@
  * cspTest.cpp
  *
  *  Created on: Nov. 25, 2021
- *      Author: calac
+ *      Author: Tyler
  */
 
 #include "cspTest.h"
@@ -25,9 +25,9 @@ Boolean cspTest() {
 
 	//Startup CSP Test
 	uint8_t address = 1;
-	csp_debug_level_t debug_level = CSP_INFO;
+	csp_debug_level_t debug_level = CSP_DEBUG;
 
-	//Need to set the rTABLE! -ex. "0/0 AX100, 0/2 I2C, 6/5 CAN"
+	//If NULL, default "0/0 I2C" expected
 	const char * rtable = NULL;
 
 	/* enable/disable debug levels */
@@ -66,7 +66,7 @@ Boolean cspTest() {
 			exit(1);
 		}
 	} else if (default_iface) {
-		csp_rtable_set(CSP_DEFAULT_ROUTE, 0, default_iface, CSP_NO_VIA_ADDRESS);
+		csp_rtable_set(CSP_DEFAULT_ROUTE, 0, default_iface, CSP_NO_VIA_ADDRESS); //WILL BE "0/0 I2C"
 	} else {
 		/* no interfaces configured - run server and client in process, using loopback interface */
 		server_address = address;
@@ -80,6 +80,8 @@ Boolean cspTest() {
 
 	printf("Route table\r\n");
 	csp_route_print_table();
+
+	//TODO - Create a waiting loop here for test??
 
 	/* Start server thread */
 	if ((server_address == 255) ||  /* no server address specified, I must be server */

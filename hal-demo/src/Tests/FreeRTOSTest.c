@@ -2,7 +2,7 @@
  * FreeRTOSTest.c
  *
  *  Created on: Nov. 18, 2021
- *      Author: calac
+ *      Author: Tyler
  */
 
 #include <Tests/FreeRTOSTest.h>

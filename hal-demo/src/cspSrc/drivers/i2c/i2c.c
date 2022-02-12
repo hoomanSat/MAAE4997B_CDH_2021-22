@@ -18,7 +18,7 @@ typedef struct {
 
 } i2c_context_t;
 
-/*
+/* -for reference-
  * typedef struct _I2CwriteReadTransfer {
 	unsigned int slaveAddress; //!< Address of the slave where to make the transfer.
 	unsigned int writeSize; //!< Number of bytes to be written to the I2C slave.
@@ -27,7 +27,6 @@ typedef struct {
 	volatile unsigned char *readData; //!< Memory location to store the data read from the I2C slave.
 	portTickType writeReadDelay; //!< A delay inserted between writing to an I2C slave and reading back from it.
 } I2Ctransfer;
-
  */
 
 //WIP
@@ -55,9 +54,10 @@ static int i2c_driver_tx(void *driver_data, csp_i2c_frame_t * frame) {
 	return CSP_ERR_TX;
 }
 
-//TODO
+//TODO - Integrate our driver for incoming transmissions so CSP can read it
 static void i2c_driver_rx(void * user_data, uint8_t * data, size_t data_size, void * pxTaskWoken) {
 
+	//Note our under the hood pseudo multi master mode needs to be implemented such that this will work
 	//kiss_context_t * ctx = user_data;
 	//csp_i2c_rx(&ctx->iface, data, data_size, NULL);
 }
@@ -84,10 +84,13 @@ int csp_I2C_start_and_add_I2C_interface(unsigned int i2cBusSpeed_Hz,unsigned int
 
 	int res = csp_i2c_add_interface(&ctx->iface);
 	if (res == CSP_ERR_NONE) {
+		// Our HAL Driver startup - NOTE for multimaster support we may need to call a function in a custom wrapper that implements the MM flowchart
 		res = I2C_start(i2cBusSpeed_Hz, i2cTransferTimeout);
 		if(res != 0) {
 			TRACE_FATAL("\n\r I2Ctest: I2C_start returned: %d! \n\r", res);
 		}
+
+		//This created RX Task needs to interact with our I2Cslave driver that operates via pseudo master mode flow chart wrapper solution
 		xTaskHandle taskQueuedI2Ctest3Handle;
 		csp_thread_create(csp_i2c_rx, "i2c_rx", 1024, NULL, configMAX_PRIORITIES-2, &taskQueuedI2Ctest3Handle);
 		int retValInt = 0;

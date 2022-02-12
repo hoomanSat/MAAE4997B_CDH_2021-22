@@ -22,11 +22,11 @@
 #include <string.h>
 
 // A list of commands supported by this slave.
-I2CslaveCommandList CommandList[] = {	{.command = 0xAA, .commandParameterSize = 8, .hasResponse = TRUE},
-										{.command = 0xAD, .commandParameterSize = 8, .hasResponse = FALSE},
-										{.command = 0xA0, .commandParameterSize = 1, .hasResponse = TRUE},
-										{.command = 0x0A, .commandParameterSize = 1, .hasResponse = FALSE},
-									};
+static I2CslaveCommandList CommandList[] = {	{.command = 0xAA, .commandParameterSize = 8, .hasResponse = TRUE},
+												{.command = 0xAD, .commandParameterSize = 8, .hasResponse = FALSE},
+												{.command = 0xA0, .commandParameterSize = 1, .hasResponse = TRUE},
+												{.command = 0x0A, .commandParameterSize = 1, .hasResponse = FALSE},
+											};
 
 static unsigned char I2CcommandBuffer[I2C_SLAVE_RECEIVE_BUFFER_SIZE] = {0};
 
