@@ -83,7 +83,7 @@ Boolean selectAndExecuteTest() {
 	printf("\t 16) EPS Telemetry Test \n\r");
 	printf("\t 17) I2C Slave Test \n\r");
 
-	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
+	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 17) == 0);
 
 	switch(selection) {
 	case 1:
@@ -132,7 +132,7 @@ Boolean selectAndExecuteTest() {
 		offerMoreTests = checksumTest();
 		break;
 	case 16:
-		offerMoreTests = EPSTelemetryTest();
+		//offerMoreTests = EPSTelemetryTest();
 		break;
 	case 17:
 		offerMoreTests = I2CslaveTest();

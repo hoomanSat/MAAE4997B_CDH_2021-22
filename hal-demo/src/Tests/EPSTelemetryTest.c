@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
+/*
 void I2Ccallback(SystemContext context, xSemaphoreHandle semaphore) {
 	signed portBASE_TYPE flag = pdFALSE;
 
@@ -31,7 +32,9 @@ void I2Ccallback(SystemContext context, xSemaphoreHandle semaphore) {
 	}
 	//TRACE_DEBUG(" I2C_callbackTask1: Transfer complete. \n\r");
 }
+*/
 
+/*
 int doBlockingI2CTransfer(xSemaphoreHandle semaphore, I2CgenericTransfer *tx) {
 	int retVal;
 
@@ -54,7 +57,7 @@ int doBlockingI2CTransfer(xSemaphoreHandle semaphore, I2CgenericTransfer *tx) {
 	xSemaphoreGive(semaphore);
 	return 0;
 }
-
+*/
 
 /*
  * Here the use of I2C_queueTransfer function is demonstrated by implementing our own I2Ccallback and

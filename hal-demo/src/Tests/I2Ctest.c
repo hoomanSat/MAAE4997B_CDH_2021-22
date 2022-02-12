@@ -4,21 +4,7 @@
  *  Created on: 23-Jan-2013
  *      Author: Akhil Piplani
  */
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/semphr.h>
-
-#include <at91/commons.h>
-#include <at91/utility/trace.h>
-
-#include <hal/boolean.h>
-#include <hal/Drivers/LED.h>
-#include <hal/Drivers/I2C.h>
-
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <Tests/I2Ctest.h>
 
 void I2Ccallback(SystemContext context, xSemaphoreHandle semaphore) {
 	signed portBASE_TYPE flag = pdFALSE;
@@ -29,7 +15,7 @@ void I2Ccallback(SystemContext context, xSemaphoreHandle semaphore) {
 	else {
 		xSemaphoreGiveFromISR(semaphore, &flag);
 	}
-	//TRACE_DEBUG(" I2C_callbackTask1: Transfer complete. \n\r");
+	//TRACE_DEBUG_WP(" I2C_callbackTask1: Transfer complete. \n\r");
 }
 
 int doBlockingI2CTransfer(xSemaphoreHandle semaphore, I2CgenericTransfer *tx) {
@@ -54,7 +40,6 @@ int doBlockingI2CTransfer(xSemaphoreHandle semaphore, I2CgenericTransfer *tx) {
 	xSemaphoreGive(semaphore);
 	return 0;
 }
-
 
 /*
  * Here the use of I2C_queueTransfer function is demonstrated by implementing our own I2Ccallback and
@@ -87,146 +72,30 @@ int doBlockingI2CTransfer(xSemaphoreHandle semaphore, I2CgenericTransfer *tx) {
  * The I2C driver implements the same functions internally.
  */
 
-
-void taskQueuedI2Ctest1() {
-	int retValInt = 0;
-	unsigned int i;
-	I2CgenericTransfer i2cTx;
-	I2CtransferStatus txResult;
-	xSemaphoreHandle txSemaphore = NULL;
-	unsigned char readData[32] = {0}, writeData[32] = {0};
-	TRACE_DEBUG("\n\r taskQueuedI2Ctest1: Starting. \n\r");
-
-	writeData[0] = 0x37;
-	//WRITE DATA: EF 02 04 06 08 0A 0C 0E 10-12 14 16 18 1A 1C 1E 20-22 24 26 28 2A 2C 2E 30-32 34 36 38 3A 3C 3E
-	for(i=1; i<sizeof(writeData); i++) {
-		writeData[i] = (unsigned char)(i*2);
-	}
-
-	vSemaphoreCreateBinary(txSemaphore);
-	if(txSemaphore == NULL) {
-		TRACE_WARNING("\n\r taskQueuedI2Ctest1: vSemaphoreCreateBinary failed! \n\r");
-		while(1);
-	}
-	unsigned char myChar[1] = {'7'};
-	i2cTx.callback = I2Ccallback;
-	i2cTx.direction = write_i2cDir;
-	i2cTx.readData = readData;
-	i2cTx.readSize = 1;
-	i2cTx.writeData = myChar;
-	i2cTx.writeSize = 1;
-	i2cTx.writeReadDelay = 0;
-	i2cTx.slaveAddress = 0x41;
-	i2cTx.result = &txResult;
-	i2cTx.semaphore = txSemaphore;
-
-	//while(1) {
-		TRACE_DEBUG(" taskQueuedI2Ctest1 \n\r");
-
-		retValInt = doBlockingI2CTransfer(txSemaphore, &i2cTx);
-		if(retValInt != 0) {
-			TRACE_WARNING("\n\r taskQueuedI2Ctest1: I2C_queueTransfer returned: %d! \n\r", retValInt);
-			while(1);
-		}
-		else {
-			if(txResult==error_i2c || txResult==readError_i2c || txResult==writeError_i2c) {
-				TRACE_WARNING("\n\r taskQueuedI2Ctest1: transfer error! \n\r");
-			}
-		}
-
-		TRACE_DEBUG(" taskQueuedI2Ctest1: received back: \n\r");
-		TRACE_DEBUG("(%02X) ", readData[0]);
-		for(i=1; i<i2cTx.readSize; i++) {
-			TRACE_DEBUG("%02X ", readData[i]);
-			//writeData[i]++;
-		}
-		//writeData[i]++;
-
-		TRACE_DEBUG(" \n\r\n\r");
-		vTaskDelay(5);
-	//}
-}
-
-void taskQueuedI2Ctest2() {
-	int retValInt = 0;
-	unsigned int i;
-	I2CgenericTransfer i2cTx;
-	I2CtransferStatus txResult;
-	xSemaphoreHandle txSemaphore = NULL;
-	unsigned char readData[64] = {0}, writeData[64] = {0};
-	TRACE_DEBUG("\n\r taskQueuedI2Ctest2: Starting. \n\r");
-
-	writeData[0] = 0xEF;
-	for(i=1; i<sizeof(writeData); i++) {
-		writeData[i] = (unsigned char)(i*2);
-	}
-
-	vSemaphoreCreateBinary(txSemaphore);
-	if(txSemaphore == NULL) {
-		TRACE_WARNING("\n\r taskQueuedI2Ctest2: vSemaphoreCreateBinary failed! \n\r");
-		while(1);
-	}
-
-	i2cTx.callback = I2Ccallback;
-	i2cTx.direction = writeRead_i2cDir;
-	i2cTx.readData = readData;
-	i2cTx.readSize = 3;
-	i2cTx.writeData = writeData;
-	i2cTx.writeSize = 4;
-	i2cTx.writeReadDelay = 1;
-	i2cTx.slaveAddress = 0x41;
-	i2cTx.result = &txResult;
-	i2cTx.semaphore = txSemaphore;
-
-	while(1) {
-		//TRACE_DEBUG(" taskQueuedI2Ctest2 \n\r");
-
-		retValInt = doBlockingI2CTransfer(txSemaphore, &i2cTx);
-		if(retValInt != 0) {
-			TRACE_WARNING("\n\r taskQueuedI2Ctest2: I2C_queueTransfer returned: %d! \n\r", retValInt);
-			while(1);
-		}
-		else {
-			if(txResult==error_i2c || txResult==readError_i2c || txResult==writeError_i2c) {
-				TRACE_WARNING("\n\r taskQueuedI2Ctest2: transfer error! \n\r");
-			}
-		}
-
-		//TRACE_DEBUG(" taskQueuedI2Ctest2: received back: \n\r");
-		//TRACE_DEBUG("0x%X ", readData[0]);
-		for(i=1; i<i2cTx.readSize; i++) {
-			//TRACE_DEBUG("0x%X ", readData[i]);
-			writeData[i]++;
-		}
-		writeData[i]++;
-
-		//TRACE_DEBUG(" \n\r\n\r");
-		vTaskDelay(5);
-	}
-}
-
 void taskQueuedI2Ctest3() {
 	int retValInt = 0;
 	unsigned int i;
 	I2Ctransfer i2cTx;
 	unsigned char readData[64] = {0}, writeData[64] = {0};
-	TRACE_DEBUG("\n\r taskQueuedI2Ctest3: Starting. \n\r");
+	TRACE_DEBUG_WP("\n\r taskQueuedI2Ctest3: Starting. \n\r");
+
 
 	writeData[0] = 0x33;
 	for(i=1; i<sizeof(writeData); i++) {
 		writeData[i] = (unsigned char)(i*2);
 	}
 
+
 	unsigned char writeOut[13] = "Hello World!\0";
 	i2cTx.readData = readData;
-	i2cTx.readSize = 13;
+	i2cTx.readSize = 20;
 	i2cTx.writeData = writeOut;
 	i2cTx.writeSize = 13;
 	i2cTx.writeReadDelay = 2;
 	i2cTx.slaveAddress = 0x41;
 
 
-		TRACE_DEBUG(" taskQueuedI2Ctest3 \n\r");
+		TRACE_DEBUG_WP(" taskQueuedI2Ctest3 \n\r");
 
 		retValInt = I2C_writeRead(&i2cTx); // Use I2C_writeRead instead of our own implementation.
 		if(retValInt != 0) {
@@ -234,7 +103,7 @@ void taskQueuedI2Ctest3() {
 			while(1);
 		}
 
-		TRACE_DEBUG(" taskQueuedI2Ctest3: received back: \n\r");
+		TRACE_DEBUG_WP(" taskQueuedI2Ctest3: received back: \n\r");
 		printf("%c", readData[0]);
 		for(i=1; i<i2cTx.readSize; i++) {
 			printf("%c", readData[i]);
@@ -245,7 +114,7 @@ void taskQueuedI2Ctest3() {
 			printf("%02X", readData[i]);
 		}
 		printf("\n\r");
-		TRACE_DEBUG(" \n\r\n\r");
+		TRACE_DEBUG_WP(" \n\r\n\r");
 		//vTaskDelay(5);
 
 }
@@ -260,7 +129,7 @@ Boolean I2Ctest() {
 		TRACE_FATAL("\n\r I2Ctest: I2C_start returned: %d! \n\r", retValInt);
 	}
 
-	// dante comment
+
 	//xTaskGenericCreate(taskQueuedI2Ctest1, (const signed char*)"taskQueuedI2Ctest1", 1024, NULL, configMAX_PRIORITIES-2, &taskQueuedI2Ctest1Handle, NULL, NULL);
 	//xTaskGenericCreate(taskQueuedI2Ctest2, (const signed char*)"taskQueuedI2Ctest2", 1024, NULL, 2, &taskQueuedI2Ctest2Handle, NULL, NULL);
 	//xTaskGenericCreate(taskQueuedI2Ctest3, (const signed char*)"taskQueuedI2Ctest3", 1024, NULL, 2, &taskQueuedI2Ctest3Handle, NULL, NULL);
