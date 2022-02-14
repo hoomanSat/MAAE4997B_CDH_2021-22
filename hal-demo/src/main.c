@@ -189,7 +189,10 @@ void taskMain() {
 	//vTaskSuspend(NULL);
 
 	while(1) {
-		LED_toggle(led_1);
+		LED_wave(1);
+		LED_waveReverse(1);
+		LED_wave(1);
+		LED_waveReverse(1);
 		vTaskDelay(500);
 	}
 

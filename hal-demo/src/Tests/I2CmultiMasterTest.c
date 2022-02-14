@@ -2,95 +2,53 @@
  * I2CmultiMasterTest.c
  *
  */
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/semphr.h>
+#include <Tests/I2CmultiMasterTest.h>
 
-#include <at91/commons.h>
-#include <at91/utility/trace.h>
-#include <at91/boards/ISIS_OBC_G20/at91sam9g20/AT91SAM9G20.H>
-
-#include <hal/Drivers/LED.h>
-#include <hal/Drivers/I2C.h>
-#include <hal/boolean.h>
-#include <hal/Drivers/I2Cslave.h>
-#include <hal/Utility/util.h>
-
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-// A list of commands supported by this slave.
+// A list of commands supported by this slave. - Required to init slave mode
 static I2CslaveCommandList CommandList[] = {	{.command = 0xAA, .commandParameterSize = 8, .hasResponse = TRUE},
 												{.command = 0xAD, .commandParameterSize = 8, .hasResponse = FALSE},
 												{.command = 0xA0, .commandParameterSize = 1, .hasResponse = TRUE},
 												{.command = 0x0A, .commandParameterSize = 1, .hasResponse = FALSE},
 											};
 
-static unsigned char I2CcommandBuffer[I2C_SLAVE_RECEIVE_BUFFER_SIZE] = {0};
+
+static unsigned char I2CInput[I2C_SLAVE_RECEIVE_BUFFER_SIZE] = {0};
+
+#define TEST_SLAVE_ADR 0x5D
 
 #define MASTER_MODE 1
 #define SLAVE_MODE 0
 
-static unsigned int I2CModeCurrent = SLAVE_MODE; //0 Slave, 1 Master
-static unsigned int I2CModeRequested = SLAVE_MODE; //0 Slave, 1 Master
+unsigned int I2CModeCurrent = SLAVE_MODE; //0 Slave, 1 Master
+unsigned int I2CModeRequested = SLAVE_MODE; //0 Slave, 1 Master
 
 // A task to read commands from the driver and responds back to them if the command is supposed to carry a response.
 void slaveTestProcess() {
-	int bytesRead, bytesWritten, bytesToWrite;
-	unsigned int i, commandListSize = sizeof(CommandList) / sizeof(CommandList[0]);
-	unsigned int commandCount = 0;
-	unsigned char WriteBuffer[I2C_SLAVE_RECEIVE_BUFFER_SIZE + sizeof(unsigned int)];
-
-	while(1) {
-		// Call I2Cslave_read which will block (make this task sleep until I2C master sends a command).
-		bytesRead = I2Cslave_read(I2CcommandBuffer);
-		if(bytesRead < 0) {
-			// An error occurred!
-			TRACE_ERROR_WP("taskI2CslaveTest: I2Cslave_read returned %d. \n", bytesRead);
-			continue;
-		}
-
-		commandCount++;
-
-		// Print out the received command
-		TRACE_DEBUG_WP("taskI2CslaveTest: received command: \n\r");
-		UTIL_DbguDumpArrayBytes(I2CcommandBuffer, bytesRead);
-
-		// Check which command was received
-		for(i=0; i<commandListSize; i++) {
-
-			// Check if the command is present in the list.
-			if(CommandList[i].command == I2CcommandBuffer[0]) {
-
-				// Check if the command is supposed to have a response.
-				if(CommandList[i].hasResponse != FALSE) {
-					// The command has a response, this task does nothing special with commands
-					// It takes the original command and echoes it back along with a count of the number of commands received.
-					memcpy(WriteBuffer, I2CcommandBuffer, bytesRead);
-					memcpy(WriteBuffer + bytesRead, &commandCount, sizeof(commandCount));
-
-					bytesToWrite = bytesRead + sizeof(commandCount);
-
-					// Call I2Cslave_write to send back the response. The function will block (make this task sleep) until the master retrieves the data.
-					bytesWritten = I2Cslave_write(WriteBuffer, bytesToWrite, portMAX_DELAY);
-
-					// Check if the I2C master retrieved all the bytes we wanted to send.
-					if(bytesWritten != bytesToWrite) {
-						printf("taskI2CslaveTest: I2Cslave_write returned %d. \n", bytesWritten);
-					}
-				}
-
-				break;
-			}
-		}
-
-		// The above loop reached commandListSize. This means the command sent by master was not in the list.
-		if(i == commandListSize) {
-			csp_log_warn("taskI2CslaveTest: Ignored an invalid command sent by I2C master. \n");
-		}
+	int bytesRead;
+	TRACE_DEBUG_WP("I2C Slave_read runs \n\r");
+	// Call I2Cslave_read which will block (make this task sleep until I2C master sends a command).
+	bytesRead = I2Cslave_read(I2CInput);
+	if(bytesRead < 0) {
+		// An error occurred!
+		TRACE_ERROR_WP("taskI2CslaveTest: I2Cslave_read returned %d. \n", bytesRead);
 	}
+
+	TRACE_DEBUG_WP("I2C Slave_read : bytesRead %d \n\r", bytesRead);
+	TRACE_DEBUG_WP("Message from AX100 received: \n\r");
+	UTIL_DbguDumpArrayBytes(I2CInput, bytesRead);
+
+	TRACE_DEBUG_WP("%c", I2CInput[0]);
+	for(int i = 1; i < bytesRead; i++) {
+		TRACE_DEBUG_WP("%c", I2CInput[i]);
+	}
+	TRACE_DEBUG_WP("\n");
+	TRACE_DEBUG_WP("%02X", I2CInput[0]);
+	for(int i = 1; i < bytesRead; i++) {
+		TRACE_DEBUG_WP("%02X", I2CInput[i]);
+	}
+	TRACE_DEBUG_WP("\n\r");
+	TRACE_DEBUG_WP(" \n\r\n\r");
+
 }
 
 void mastermodeWriteReadProcess() {
@@ -98,7 +56,7 @@ void mastermodeWriteReadProcess() {
 	unsigned int i;
 	I2Ctransfer i2cTx;
 	unsigned char readData[64] = {0}, writeData[64] = {0};
-	TRACE_DEBUG_WP("\n\r taskQueuedI2Ctest3: Starting. \n\r");
+	TRACE_DEBUG_WP("\n\r Master mode call Starting. \n\r");
 
 	writeData[0] = 0x33;
 	for(i=1; i<sizeof(writeData); i++) {
@@ -111,14 +69,14 @@ void mastermodeWriteReadProcess() {
 	i2cTx.writeData = writeOut;
 	i2cTx.writeSize = 19;
 	i2cTx.writeReadDelay = 1;
-	i2cTx.slaveAddress = 0x41;// <--------------SLAVE TARGET
+	i2cTx.slaveAddress = TEST_SLAVE_ADR;// <--------------SLAVE TARGET
 
 
-		TRACE_DEBUG_WP("To 41 Sending I2CTransfer via writeRead() \n\r");
+		TRACE_DEBUG_WP("To 41 Sending I2CRequest to Slave via writeRead() \n\r");
 
 		retValInt = I2C_writeRead(&i2cTx); // Use I2C_writeRead instead of our own implementation.
 		if(retValInt != 0) {
-			TRACE_WARNING_WP("\n\r taskQueuedI2Ctest3: I2C_writeRead returned with code: %d! \n\r", retValInt);
+			TRACE_WARNING_WP("\n\r I2C_writeRead returned with code: %d! \n\r", retValInt);
 			return;
 		}
 
@@ -140,8 +98,9 @@ void mastermodeWriteReadProcess() {
 
 void initSlave(){
 	unsigned int commandListSize = sizeof(CommandList) / sizeof(CommandList[0]);
+	TRACE_DEBUG_WP("Init SlaveMode \n\r");
 	I2C_stop();
-	int retValInt = I2Cslave_start(0x00, CommandList, commandListSize);
+	int retValInt = I2Cslave_start(TEST_SLAVE_ADR, CommandList, commandListSize);
 	if(retValInt != 0) {
 		csp_log_error("\n\r I2CslaveTest: I2Cslave_start returned: %d! \n\r", retValInt);
 	}
@@ -149,6 +108,7 @@ void initSlave(){
 }
 
 void initMaster(){
+	TRACE_DEBUG_WP("Init Master Mode \n\r");
 	I2Cslave_stop();
 	int retValInt = I2C_start(400000, 1000);//2nd param can be 'portMAX_DELAY' for debug step through to prevent timeout.
 	if(retValInt != 0) {
@@ -161,27 +121,36 @@ void multimasterDirector(){
 	AT91_REG status_register;
 
 	while(1){
+
 		//Check for mode switch
 		if (I2CModeRequested != I2CModeCurrent){
 			if(I2CModeRequested == SLAVE_MODE){
+				TRACE_DEBUG_WP("Mode Switch to slave \n\r")
 				initSlave();
 			}else if (I2CModeRequested == MASTER_MODE){
+				TRACE_DEBUG_WP("Mode Switch to slave master \n\r")
 				initMaster();
 			}else{
-				csp_log_error("I2CModeRequested was set to unexpected value");
+				TRACE_ERROR("I2CModeRequested was set to unexpected value \n\r");
 				exit(1);
 			}
 		}
+
 		//Follow Flowchart - REFERENCE SAM8g20.pdf (pg. 423)
 		if (I2CModeCurrent == SLAVE_MODE){
 			while(1){ //THE SLAVE FLOW LOOP
+				//slaveTestProcess();
+
 				//READ STATUS REGISTER
 				status_register = AT91C_BASE_TWI->TWI_SR;
+				//TRACE_DEBUG_WP("Status Reg %X \n\r", status_register);
 				//CHECK SVACC
-				if ((status_register & AT91C_TWI_SVACC) == 1){
+				//TRACE_DEBUG_WP("SVACC %X \n\r", (status_register & AT91C_TWI_SVACC));
+				if ((status_register & AT91C_TWI_SVACC) == AT91C_TWI_SVACC){
 					//Check GACC
-					if ((status_register & AT91C_TWI_GACC) == 1){
-						csp_log_error("GENERAL CALL NOT SUPPORTED");
+					//TRACE_DEBUG_WP("GACC %X \n\r", (status_register & AT91C_TWI_GACC));
+					if ((status_register & AT91C_TWI_GACC) == AT91C_TWI_GACC){
+						TRACE_ERROR("GENERAL CALL NOT SUPPORTED \n\r");
 						exit(1);
 					}else{//GACC == 0
 						if ((status_register & AT91C_TWI_SVREAD) == 0){
@@ -189,23 +158,29 @@ void multimasterDirector(){
 								//READ TWI_RHR - Let the hal driver do this
 								slaveTestProcess();
 							}else{
-
+								//loop out
 							}
 						}else{
-
+							//loop out
 						}
 					}
 				}else{//SVACC == 0, or NO on flow
 					//CHECK EOSACC
-					if((status_register & AT91C_TWI_EOSACC) == 1){
+					//TRACE_DEBUG_WP("EOSACC %X \n\r", (status_register & AT91C_TWI_EOSACC));
+					if((status_register & AT91C_TWI_EOSACC) == AT91C_TWI_EOSACC){
 						//CHECK TXCOMP
-						if((status_register & AT91C_TWI_TXCOMP) == 1){
+						//TRACE_DEBUG_WP("TXCOMP %X \n\r", (status_register & AT91C_TWI_TXCOMP));
+						if((status_register & AT91C_TWI_TXCOMP) == AT91C_TWI_TXCOMP){
 							//Another task sets up the I2CModeRequested to = MASTER_MODE to indicate a master communication is requested - TODO Data is moved via task queue or global?
 							break; //Return to outer loop and check for mode switch
 						}
 						//continue
 					}
 					//continue
+				}
+
+				if (I2CModeRequested == MASTER_MODE){
+					break;
 				}
 				//GOTO READ STATUS REGISTER
 				csp_sleep_ms(5);
@@ -219,13 +194,14 @@ void multimasterDirector(){
 					break; //Return to outer loop and check for mode switch
 				}else{//ARBLST == 0, or NO in the flow
 					//DO MASTER MODE TEST-READWRITE
-					mastermodeWriteReadTest();
+					mastermodeWriteReadProcess();
+					I2CModeRequested = SLAVE_MODE;
 					break;
 				}
 
 			}
 		}else{
-			csp_log_error("I2CModeCurrent was set to unexpected value");
+			TRACE_ERROR("I2CModeCurrent was set to unexpected value \n\r");
 			exit(1);
 		}
 
@@ -238,25 +214,36 @@ void localSchedule(){
 	//How it passes data is a Dante problem
 	while(1){
 		//TODO
+		if((rand() % 100) < 25){
+			TRACE_DEBUG_WP("Requesting Master-Mode \n\r");
+			I2CModeRequested = MASTER_MODE;
+			csp_sleep_ms(1000);
+		}else{
+			//do nothing
+		}
+		csp_sleep_ms(5);
 	}
-	csp_sleep_ms(5);
+
 }
 
 
 Boolean I2CmultiMasterTest() {
 	int retValInt = 0;
-	xTaskHandle multimasterDirector;
-	xTaskHandle localSchedule;
+	xTaskHandle multimasterDirectorHandle;
+	xTaskHandle localScheduleHandle;
 
 	unsigned int commandListSize = sizeof(CommandList) / sizeof(CommandList[0]);
 
-	retValInt = I2Cslave_start(0x5D, CommandList, commandListSize);
+	retValInt = I2Cslave_start(TEST_SLAVE_ADR, CommandList, commandListSize);
 	if(retValInt != 0) {
 		TRACE_FATAL("\n\r I2CslaveTest: I2Cslave_start returned: %d! \n\r", retValInt);
 	}
+	TRACE_DEBUG_WP("\n\r Starting MM Director \n\r");
 
-	xTaskGenericCreate(multimasterDirector, (const signed char*)"multimasterDirector", 1024, NULL, configMAX_PRIORITIES-2, &multimasterDirector, NULL, NULL);
-	xTaskGenericCreate(localSchedule, (const signed char*)"localSchedule", 1024, NULL, configMAX_PRIORITIES-2, &localSchedule, NULL, NULL);
+	xTaskGenericCreate(multimasterDirector, (const signed char*)"multimasterDirector", 1024, NULL, configMAX_PRIORITIES-2, &multimasterDirectorHandle, NULL, NULL);
+
+	TRACE_DEBUG_WP("Starting localSchedule");
+	xTaskGenericCreate(localSchedule, (const signed char*)"localSchedule", 1024, NULL, configMAX_PRIORITIES-2, &localScheduleHandle, NULL, NULL);
 
 	//Terminate (fall out) on the mainmenu task, only the director remains and the poll scheduler
 	return FALSE; //No other commands may execute after this test, reboot required.
