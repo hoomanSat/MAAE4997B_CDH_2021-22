@@ -10,9 +10,9 @@
 void taskEPS_I2C_Test() {
 	int retValInt = 0;
 	unsigned int i;
-	I2Ctransfer i2cTx;
+	I2Ctransfer i2c;
 	unsigned char readData[64] = {0}, writeData[64] = {0};
-	TRACE_DEBUG("\n\r taskEPS_I2C_Test: Starting. \n\r");
+	TRACE_DEBUG_WP("\n\r taskEPS_I2C_Test: Starting. \n\r");
 
 	/*writeData[0] = 0x33;
 	for(i=1; i<sizeof(writeData); i++) {
@@ -24,33 +24,33 @@ void taskEPS_I2C_Test() {
 	writeOut[0] = 0x01; // command
 	writeOut[1] = 0x00; // data parameter
 
-	i2cTx.writeData = writeOut;
-	i2cTx.writeSize = 2;
-	i2cTx.readData = readData;
-	i2cTx.readSize = 2;
-	i2cTx.writeReadDelay = 2;
-	i2cTx.slaveAddress = 0x2B; // EPS slave address as listed in the EPS technical manual
+	i2c.writeData = writeOut;
+	i2c.writeSize = 2;
+	i2c.readData = readData;
+	i2c.readSize = 2;
+	i2c.writeReadDelay = 2;
+	i2c.slaveAddress = 0x2B; // EPS slave address as listed in the EPS technical manual
 
-		TRACE_DEBUG(" taskEPS_I2C_Test \n\r");
+		TRACE_DEBUG_WP(" taskEPS_I2C_Test \n\r");
 
-		retValInt = I2C_writeRead(&i2cTx); // Use I2C_writeRead instead of our own implementation.
+		retValInt = I2C_writeRead(&i2c); // Use I2C_writeRead instead of our own implementation.
 		if(retValInt != 0) {
 			TRACE_WARNING("\n\r taskEPS_I2C_Test: I2C_writeRead returned: %d! \n\r", retValInt);
 			while(1);
 		}
 
-		TRACE_DEBUG(" taskEPS_I2C_Test: received back: \n\r");
+		TRACE_DEBUG_WP(" taskEPS_I2C_Test: received back: \n\r");
 		printf("%c", readData[0]);
-		for(i=1; i<i2cTx.readSize; i++) {
+		for(i=1; i<i2c.readSize; i++) {
 			printf("%c", readData[i]);
 		}
 		printf("\n");
 		printf("%02X", readData[0]);
-		for(i=1; i<i2cTx.readSize; i++) {
+		for(i=1; i<i2c.readSize; i++) {
 			printf("%02X", readData[i]);
 		}
 		printf("\n\r");
-		TRACE_DEBUG(" \n\r\n\r");
+		TRACE_DEBUG_WP(" \n\r\n\r");
 		//vTaskDelay(5);
 
 }
