@@ -6,10 +6,8 @@
  */
 
 #include <at91/utility/trace.h>
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-
 #include <hal/boolean.h>
 #include <hal/Drivers/ADC.h>
 #include <hal/Drivers/PWM.h>
