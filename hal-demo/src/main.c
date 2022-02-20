@@ -113,7 +113,7 @@ Boolean selectAndExecuteTest() {
 
 	case 6:
 		offerMoreTests = I2Ctest();
-	default:
+		default:
 		break;
 
 	// unused cases have been commented out below
