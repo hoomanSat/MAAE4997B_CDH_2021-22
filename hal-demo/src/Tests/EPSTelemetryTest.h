@@ -5,11 +5,25 @@
  *      Author: Dante Corsi
  */
 
-#ifndef I2CTEST_H_
-#define I2CTEST_H_
+#ifndef EPSTEST_H_
+#define EPSTEST_H_
+
+#include <at91/commons.h>
+#include <at91/utility/trace.h>
 
 #include <hal/boolean.h>
+#include <hal/Drivers/LED.h>
+#include <hal/Drivers/I2C.h>
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/semphr.h>
 
 Boolean EPSTelemetryTest();
 
-#endif /* I2CTEST_H_ */
+#endif /* EPSTEST_H_ */

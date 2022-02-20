@@ -1,5 +1,6 @@
 /*
  * main.c
+ * FLATSAT Test Code V1
  * Dante Corsi
  */
 
@@ -8,6 +9,7 @@
 #include "Tests/I2CslaveTest.h"
 #include "Tests/SPI_FRAM_RTCtest.h"
 #include "Tests/FloatingPointTest.h"
+#include "Tests/EPSTelemetryTest.h"
 #include "Tests/ADCtest.h"
 #include "Tests/UARTtest.h"
 #include "Tests/PinTest.h"
