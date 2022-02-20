@@ -28,12 +28,12 @@
 void taskUARTtest(void *arguments) {
 	int retValInt = 0;
 	unsigned int readSize = 4, i;
-	unsigned char readData[32] = {0}, writeData[32] = {0};
+	unsigned char readData[16] = {0}, writeData[16] = {0};
 	UARTbus bus = *((UARTbus*)arguments);
 
 	while(1) {
 		retValInt = UART_read(bus, readData, readSize);
-		if(retValInt != 0) {
+		if(retValInt != 0 && retValInt != 16) {
 			TRACE_WARNING("\n\r taskUARTtest: UART_read returned: %d for bus %d \n\r", retValInt, bus);
 		}
 
@@ -49,7 +49,7 @@ void taskUARTtest(void *arguments) {
 		writeData[i+1] = '\r';
 
 		retValInt = UART_write(bus, writeData, readSize+2); // Write 2 bytes more than we received for \n\r
-		if(retValInt != 0) {
+		if(retValInt != 0 && retValInt != 16) {
 			TRACE_WARNING("\n\r taskUARTtest: UART_write returned: %d for bus %d \n\r", retValInt, bus);
 		}
 
