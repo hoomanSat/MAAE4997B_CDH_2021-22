@@ -66,7 +66,7 @@ Boolean selectAndExecuteTest() {
 	unsigned int selection = 0;
 	Boolean offerMoreTests = TRUE;
 
-	printf( "\n\r Select a test to perform: \n\r");
+	printf("\n\r Select a test to perform: \n\r");
 	printf("\t 1) EPS Telemetry Test \n\r");
 	printf("\t 2) UART \n\r");
 	printf("\t 3) ADC Single Shot \n\r");
@@ -183,9 +183,6 @@ void taskMain() {
 			break;
 		}
 	}
-
-	// Suspend itself.
-	//vTaskSuspend(NULL);
 
 	while(1) {
 		LED_toggle(led_1);

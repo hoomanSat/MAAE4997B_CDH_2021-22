@@ -14,18 +14,22 @@ void taskEPS_I2C_Test() {
 	unsigned char readData[64] = {0}, writeData[64] = {0};
 	TRACE_DEBUG("\n\r taskEPS_I2C_Test: Starting. \n\r");
 
-	writeData[0] = 0x33;
+	/*writeData[0] = 0x33;
 	for(i=1; i<sizeof(writeData); i++) {
 		writeData[i] = (unsigned char)(i*2);
-	}
+	}*/
 
-	unsigned char writeOut[13] = "Hello World!\0";
-	i2cTx.readData = readData;
-	i2cTx.readSize = 13;
+	// this sequence of bytes prompts the EPS to return the current EPS board status
+	unsigned char writeOut[2];
+	writeOut[0] = 0x01; // command
+	writeOut[1] = 0x00; // data parameter
+
 	i2cTx.writeData = writeOut;
-	i2cTx.writeSize = 13;
+	i2cTx.writeSize = 2;
+	i2cTx.readData = readData;
+	i2cTx.readSize = 2;
 	i2cTx.writeReadDelay = 2;
-	i2cTx.slaveAddress = 0x41;
+	i2cTx.slaveAddress = 0x2B; // EPS slave address as listed in the EPS technical manual
 
 		TRACE_DEBUG(" taskEPS_I2C_Test \n\r");
 
@@ -55,8 +59,8 @@ Boolean EPSTelemetryTest() {
 	int retValInt = 0;
 	xTaskHandle taskEPS_I2C_Test_Handle;
 
-	//Our I2c can do 400 khz max. FAST MODE
-	retValInt = I2C_start(400000, 5000);//2nd param can be 'portMAX_DELAY' for debug step through to prevent timeout.
+	// For EPS communication, i2c bus runs at 100 kHz speed
+	retValInt = I2C_start(100000, 5000);
 	if(retValInt != 0) {
 		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_start returned: %d! \n\r", retValInt);
 	}
