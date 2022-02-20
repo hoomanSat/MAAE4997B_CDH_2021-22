@@ -23,10 +23,12 @@
 #include <string.h>
 #include <stdio.h>
 
+#define BAUDRATE 9600
+
 void taskUARTtest(void *arguments) {
 	int retValInt = 0;
 	unsigned int readSize = 4, i;
-	unsigned char readData[16] = {0}, writeData[16] = {0};
+	unsigned char readData[32] = {0}, writeData[32] = {0};
 	UARTbus bus = *((UARTbus*)arguments);
 
 	while(1) {
@@ -62,9 +64,9 @@ Boolean UARTtest() {
 	static UARTbus UARTtestBus[2] = {bus0_uart, bus2_uart};
 
 	UARTconfig configBus0 = {.mode = AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
-								.baudrate = 115200, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0xFFFF};
+								.baudrate = BAUDRATE, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0xFFFF};
 	UARTconfig configBus2 = {.mode = AT91C_US_USMODE_HWHSH  | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
-								.baudrate = 115200, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0xFFFF};
+								.baudrate = BAUDRATE, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0xFFFF};
 
 	printf("\n This test will receive 4 characters over UART, capitalize them and send them back. \n");
 	printf(" If you send \"12ab\", you will receive back \"12AB\" on the same bus. \n");

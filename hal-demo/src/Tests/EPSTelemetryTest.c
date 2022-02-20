@@ -11,7 +11,10 @@ void taskEPS_I2C_Test() {
 	int retValInt = 0;
 	unsigned int i;
 	I2Ctransfer i2c;
-	unsigned char readData[64] = {0}, writeData[64] = {0};
+	unsigned char readData[64] = {0};
+
+	//, writeData[64] = {0};
+
 	TRACE_DEBUG_WP("\n\r taskEPS_I2C_Test: Starting. \n\r");
 
 	/*writeData[0] = 0x33;
