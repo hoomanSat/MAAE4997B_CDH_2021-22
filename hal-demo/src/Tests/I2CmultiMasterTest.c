@@ -4,11 +4,13 @@
  */
 #include <Tests/I2CmultiMasterTest.h>
 
+#define ARDUINO_PACKET_MAXSIZE 31
+
 // A list of commands supported by this slave. - Required to init slave mode
-static I2CslaveCommandList CommandList[] = {	{.command = 0xAA, .commandParameterSize = 8, .hasResponse = TRUE},
-												{.command = 0xAD, .commandParameterSize = 8, .hasResponse = FALSE},
-												{.command = 0xA0, .commandParameterSize = 1, .hasResponse = TRUE},
-												{.command = 0x0A, .commandParameterSize = 1, .hasResponse = FALSE},
+//The command parameter size should consider the features applied to inbound CSP I2C Packets MTU limits
+//0x26 = '&'
+//less 1 for command character
+static I2CslaveCommandList CommandList[] = {	{.command = 0x26, .commandParameterSize = ARDUINO_PACKET_MAXSIZE, .hasResponse = TRUE},
 											};
 
 
@@ -138,12 +140,14 @@ void multimasterDirector(){
 
 		//Follow Flowchart - REFERENCE SAM8g20.pdf (pg. 423)
 		if (I2CModeCurrent == SLAVE_MODE){
+			slaveTestProcess();
+			/*
 			while(1){ //THE SLAVE FLOW LOOP
 				//slaveTestProcess();
 
 				//READ STATUS REGISTER
 				status_register = AT91C_BASE_TWI->TWI_SR;
-				//TRACE_DEBUG_WP("Status Reg %X \n\r", status_register);
+				TRACE_DEBUG_WP("Status Reg %X \n\r", status_register);
 				//CHECK SVACC
 				//TRACE_DEBUG_WP("SVACC %X \n\r", (status_register & AT91C_TWI_SVACC));
 				if ((status_register & AT91C_TWI_SVACC) == AT91C_TWI_SVACC){
@@ -200,6 +204,7 @@ void multimasterDirector(){
 				}
 
 			}
+			*/
 		}else{
 			TRACE_ERROR("I2CModeCurrent was set to unexpected value \n\r");
 			exit(1);
@@ -242,8 +247,8 @@ Boolean I2CmultiMasterTest() {
 
 	xTaskGenericCreate(multimasterDirector, (const signed char*)"multimasterDirector", 1024, NULL, configMAX_PRIORITIES-2, &multimasterDirectorHandle, NULL, NULL);
 
-	TRACE_DEBUG_WP("Starting localSchedule");
-	xTaskGenericCreate(localSchedule, (const signed char*)"localSchedule", 1024, NULL, configMAX_PRIORITIES-2, &localScheduleHandle, NULL, NULL);
+	//TRACE_DEBUG_WP("Starting localSchedule");
+	//xTaskGenericCreate(localSchedule, (const signed char*)"localSchedule", 1024, NULL, configMAX_PRIORITIES-2, &localScheduleHandle, NULL, NULL);
 
 	//Terminate (fall out) on the mainmenu task, only the director remains and the poll scheduler
 	return FALSE; //No other commands may execute after this test, reboot required.
