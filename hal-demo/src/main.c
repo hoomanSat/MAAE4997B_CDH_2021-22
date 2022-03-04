@@ -66,74 +66,14 @@ Boolean selectAndExecuteTest() {
 	Boolean offerMoreTests = TRUE;
 
 	printf( "\n\r Select a test to perform: \n\r");
-	printf("\t 1) I2C \n\r");
-	printf("\t 2) SD-Card File System \n\r");
-	printf("\t 3) SPI + FRAM + RTC \n\r");
-	printf("\t 4) UART \n\r");
-	printf("\t 5) ADC Single Shot \n\r");
-	printf("\t 6) ADC Continuous Mode \n\r");
-	printf("\t 7) Aux Pins \n\r");
-	printf("\t 8) LED \n\r");
-	printf("\t 9) PWM \n\r");
-	printf("\t 10) USB Device \n\r");
-	printf("\t 11) Supervisor Controller Test - SPI interface \n\r");
-	printf("\t 12) Supervisor Controller Test - I2C interface \n\r");
-	printf("\t 13) Board Test \n\r");
-	printf("\t 14) Time Test \n\r");
-	printf("\t 15) Checksum Test \n\r");
-	printf("\t 16) I2C Slave Test \n\r");
+	printf("\t 1) Sam-UART Test \n\r");
+
 
 	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
 
 	switch(selection) {
 	case 1:
-		offerMoreTests = I2Ctest();
-		break;
-	case 2:
-		offerMoreTests = SDCardTest();
-		break;
-	case 3:
-		offerMoreTests = SPI_FRAM_RTCtest();
-		break;
-	case 4:
-		offerMoreTests = UARTtest();
-		break;
-	case 5:
-		offerMoreTests = ADCtestSingleShot();
-		break;
-	case 6:
-		offerMoreTests = ADCtest();
-		break;
-	case 7:
-		offerMoreTests = PinTest();
-		break;
-	case 8:
-		offerMoreTests = LEDtest();
-		break;
-	case 9:
-		offerMoreTests = PWMtest();
-		break;
-	case 10:
-		offerMoreTests = USBdeviceTest();
-		break;
-	case 11:
-		offerMoreTests = SupervisorTest(FALSE);
-		break;
-	case 12:
-		offerMoreTests = SupervisorTest(TRUE);
-		break;
-	case 13:
-		offerMoreTests = boardTest();
-		break;
-	case 14:
-		offerMoreTests = TimeTest();
-		break;
-	case 15:
-		offerMoreTests = checksumTest();
-		break;
-	case 16:
-		offerMoreTests = I2CslaveTest();
-	default:
+		offerMoreTests = Sam_UARTtest();
 		break;
 	}
 
