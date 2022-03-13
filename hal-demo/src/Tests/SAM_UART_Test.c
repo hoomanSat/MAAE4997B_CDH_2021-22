@@ -73,24 +73,20 @@ Boolean SAM_UART_Test() {
 	UARTconfig configBus0 = {.mode = AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
 								.baudrate = 9600, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0x2580};
 
-
 	UARTconfig configBus2 = {.mode = AT91C_US_USMODE_HWHSH  | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
 								.baudrate = 9600, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0x2580};
 
-	//printf("\n This test will receive 4 characters over UART, capitalize them and send them back. \n");
-	//printf(" If you send \"12ab\", you will receive back \"12AB\" on the same bus. \n");
-
-	//printf("\n Please select a configuration for UART2 (0=RS232 1=RS422): \n");
-	//UTIL_DbguGetIntegerMinMax(&bus2type, 0, 1);
-
 	/*
 
+	//printf("\n This test will receive 4 characters over UART, capitalize them and send them back. \n");
+	//printf(" If you send \"12ab\", you will receive back \"12AB\" on the same bus. \n");
+	//printf("\n Please select a configuration for UART2 (0=RS232 1=RS422): \n");
+	//UTIL_DbguGetIntegerMinMax(&bus2type, 0, 1);
 	if(bus2type != 0) {
 		configBus2.mode = AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT;
 		configBus2.busType = rs422_noTermination_uart;
 	}
 	*/
-
 	// Both UART peripherals must be started separately as they can use different configurations.
 	UART_Response_Code = UART_start(bus0_uart, configBus0);
 	if(UART_Response_Code != 0) {
