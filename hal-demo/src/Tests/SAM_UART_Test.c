@@ -26,44 +26,52 @@
 
 void taskSAM_UART_Test(void *arguments) {
 	int UART_Response_Code = 0;
-	unsigned int readSize = 8, i; // Originally expects 4 bytes, but this presents an issues with the Arduinos, thus I want to test if a longer readSize helps
-	unsigned char readData[16] = {0}, writeData[16] = {0};
+	unsigned int readSize = 10, i; // Originally expects 4 bytes, but this presents an issues with the Arduinos, thus I want to test if a longer readSize helps
+	unsigned char readData[8] = {0};
+	unsigned char writeData[8] = {0};
 	UARTbus bus = *((UARTbus*)arguments);
+	char* output = "abcdefgh\n\r";
+
 
 	while(1) {
+
+		/*
 		UART_Response_Code = UART_read(bus, readData, readSize);
 		if(UART_Response_Code != 0) {
 			TRACE_WARNING("\n\r taskUARTtest: UART_read returned: %d for bus %d \n\r", UART_Response_Code, bus); //This statement prints on every unsuccessful read
-		}
-		if(UART_Response_Code == 0){
-			TRACE_WARNING("\n\r taskSAM_UART_Test: Successful UART_read (Code %d) for bus %d \n\r", UART_Response_Code, bus) // This statement prints on a success
+		}else if(UART_Response_Code == 0){
+			printf("Successful Read on bus: %d", bus);
 		}
 
 		for(i=0; i<readSize; i++) { // Loops for every character read
-			if(readData[i]>='a' && readData[i]<='z') {
-				writeData[i] = readData[i] - 'a' + 'A'; // Capitalizes letters
-			}
-			else {
-				writeData[i] = readData[i]; // Ignores #'s or special characters
-			}
+			printf("Read: %X", readData[i]);
+			//writeData[i] = readData[i]; // Echo
 		}
-		writeData[i]   = '\n';
-		writeData[i+1] = '\r';
 
-		UART_Response_Code = UART_write(bus, writeData, readSize+2); // Write 2 bytes more than we received for \n\r
+		*/
+
+		//writeData[i]   = '\n';
+		//writeData[i+1] = '\r';
+
+
+		UART_Response_Code = UART_write(bus, output, readSize); // Write 2 bytes more than we received for \n\r
 
 		if(UART_Response_Code != 0) {
 			TRACE_WARNING("\n\r taskUARTtest: UART_write returned: %d for bus %d \n\r", UART_Response_Code, bus); // Runs on unsuccessful transmission
+		}else{
+			printf("Successful Transmission on bus: %d \n\r", bus);
 		}
 
-		vTaskDelay(1);
+
+
+		vTaskDelay(1000);
 	}
 }
 
 Boolean SAM_UART_Test() {
 	int UART_Response_Code = 0;
-	unsigned int bus2type = 0;
-	xTaskHandle taskUART0testHandle, taskUART2testHandle;
+	//unsigned int bus2type = 0;
+	xTaskHandle taskUART0testHandle; //, taskUART2testHandle;
 	static UARTbus UARTtestBus[2] = {bus0_uart, bus2_uart};
 
 	// The iOBC has two different UART inputs on J7, UART0 is pins 10 and 11 (Rx0 & Tx0), and UART2 is pins 13 & 16 (Rx2 & Tx2)
@@ -73,10 +81,11 @@ Boolean SAM_UART_Test() {
 	UARTconfig configBus0 = {.mode = AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
 								.baudrate = 9600, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0x2580};
 
+	/*
 	UARTconfig configBus2 = {.mode = AT91C_US_USMODE_HWHSH  | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
 								.baudrate = 9600, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0x2580};
 
-	/*
+
 
 	//printf("\n This test will receive 4 characters over UART, capitalize them and send them back. \n");
 	//printf(" If you send \"12ab\", you will receive back \"12AB\" on the same bus. \n");
@@ -93,30 +102,35 @@ Boolean SAM_UART_Test() {
 		TRACE_WARNING("\n\r UARTtest: UART_start returned %d! \n\r", UART_Response_Code);
 		while(1);
 	}
+
+	printf("Started \n");
+
+	/*
 	UART_Response_Code = UART_start(bus2_uart, configBus2);
 	if(UART_Response_Code != 0) {
 		TRACE_WARNING("\n\r UARTtest: UART_start returned %d! \n\r", UART_Response_Code);
 		while(1);
 	}
 
+	*/
+
 	// Instantiate two separate versions of taskUARTtest and pass different bus-id's as a parameter.
 	xTaskGenericCreate(taskSAM_UART_Test, (const signed char*)"taskUARTtest-0", 1024, (void*)&UARTtestBus[0], 2, &taskUART0testHandle, NULL, NULL);
-	xTaskGenericCreate(taskSAM_UART_Test, (const signed char*)"taskUARTtest-2", 1024, (void*)&UARTtestBus[1], 2, &taskUART2testHandle, NULL, NULL);
+	//xTaskGenericCreate(taskSAM_UART_Test, (const signed char*)"taskUARTtest-2", 1024, (void*)&UARTtestBus[1], 2, &taskUART2testHandle, NULL, NULL);
 
-	vTaskDelay(1000);
+
 	printf("\n\n\r");
 
-	UART_Response_Code = UART_stop(bus0_uart, configBus0);
-	if(UART_Response_Code != 0) {
-		TRACE_WARNING("\n\r UARTtest: UART_stop returned %d! \n\r", UART_Response_Code); // Return value of UART Bus 0
-		while(1);
-	}
-	UART_Response_Code = UART_stop(bus2_uart, configBus2);
+
+	/*
+	UART_Response_Code = UART_stop(bus2_uart);
 	if(UART_Response_Code != 0) {
 		TRACE_WARNING("\n\r UARTtest: UART_start returned %d! \n\r", UART_Response_Code); // Return value of UART Bus 2
 		while(1);
 	}
+	*/
 
+	vTaskDelay(1000);
 
-	return TRUE;
+	return FALSE;
 }

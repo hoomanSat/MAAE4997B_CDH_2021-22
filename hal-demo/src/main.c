@@ -20,6 +20,7 @@
 #include "Tests/boardTest.h"
 #include "Tests/checksumTest.h"
 #include "Tests/SDCardTest.h"
+#include "Tests/SAM_UART_Test.h"
 
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>
@@ -73,7 +74,7 @@ Boolean selectAndExecuteTest() {
 
 	switch(selection) {
 	case 1:
-		offerMoreTests = Sam_UARTtest();
+		offerMoreTests = SAM_UART_Test();
 		break;
 	}
 
