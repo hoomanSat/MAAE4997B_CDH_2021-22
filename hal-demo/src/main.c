@@ -20,12 +20,11 @@
 #include "Tests/boardTest.h"
 #include "Tests/checksumTest.h"
 #include "Tests/SDCardTest.h"
-#include "Tests/SAM_UART_Test.h"
-
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>
 #include <at91/utility/trace.h>
 #include <at91/peripherals/cp15/cp15.h>
+#include <Tests/SAM_UART_Write_Test.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -47,6 +46,7 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #define ENABLE_MAIN_TRACES 1
 #if ENABLE_MAIN_TRACES
 	#define MAIN_TRACE_INFO			TRACE_INFO
@@ -67,14 +67,22 @@ Boolean selectAndExecuteTest() {
 	Boolean offerMoreTests = TRUE;
 
 	printf( "\n\r Select a test to perform: \n\r");
-	printf("\t 1) Sam-UART Test \n\r");
+	printf("\t 1) Sam-UART Write Test \n\r");
+	printf("\t 2) Sam-UART Read Test \n\r");
+	printf("\t 3) SAM-UART Read and Write Test \n\r");
 
 
 	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
 
 	switch(selection) {
 	case 1:
-		offerMoreTests = SAM_UART_Test();
+		offerMoreTests = SAM_UART_Write_Test();
+		break;
+	case 2:
+		offerMoreTests = SAM_UART_Read_Test();
+		break;
+	case 3:
+		offerMoreTests = SAM_UART_Read_And_Write_Test();
 		break;
 	}
 
@@ -113,8 +121,11 @@ void taskMain() {
 	//vTaskSuspend(NULL);
 
 	while(1) {
-		LED_toggle(led_1);
-		vTaskDelay(500);
+		LED_wave(1);
+		//LED_waveReverse(1);
+		LED_wave(1);
+		//LED_waveReverse(1);
+		vTaskDelay(100);
 	}
 
 }

@@ -5,8 +5,8 @@
  *      Author: Sam Dunthorne
  */
 
-#ifndef TESTS_SAM_UART_TEST_H_
-#define TESTS_SAM_UART_TEST_H_
+#ifndef TESTS_SAM_UART_WRITE_TEST_H_
+#define TESTS_SAM_UART_WRITE_TEST_H_
 
 Boolean SAM_UART_Test();
 

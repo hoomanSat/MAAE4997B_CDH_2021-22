@@ -1,10 +1,9 @@
 /*
- * SAM_UART_Test.c
+ * SAM_UART_Read_And_Write_Test.c
  *
- *  Created on: Mar. 3, 2022
+ *  Created on: Mar. 13, 2022
  *      Author: Sam Dunthorne
  */
-
 
 #include <at91/boards/ISIS_OBC_G20/board.h>
 #include <at91/utility/trace.h>
@@ -24,53 +23,42 @@
 #include <string.h>
 #include <stdio.h>
 
-void taskSAM_UART_Test(void *arguments) {
+void taskSAM_UART_Read_And_Write_Test(void *arguments) {
 	int UART_Response_Code = 0;
-	unsigned int readSize = 10, i; // Originally expects 4 bytes, but this presents an issues with the Arduinos, thus I want to test if a longer readSize helps
-	unsigned char readData[8] = {0};
+	unsigned int readSize = 5;
+	unsigned char readData[5] = {0};
 	unsigned char writeData[8] = {0};
 	UARTbus bus = *((UARTbus*)arguments);
-	char* output = "abcdefgh\n\r";
+	char* output = "UART Sucks\n\r";
+	unsigned int outputSize = 12;
 
 
 	while(1) {
-
-		/*
 		UART_Response_Code = UART_read(bus, readData, readSize);
 		if(UART_Response_Code != 0) {
 			TRACE_WARNING("\n\r taskUARTtest: UART_read returned: %d for bus %d \n\r", UART_Response_Code, bus); //This statement prints on every unsuccessful read
 		}else if(UART_Response_Code == 0){
-			printf("Successful Read on bus: %d", bus);
+			printf("Successful Read on bus: %d\n\r", bus);
 		}
 
-		for(i=0; i<readSize; i++) { // Loops for every character read
-			printf("Read: %X", readData[i]);
-			//writeData[i] = readData[i]; // Echo
-		}
-
-		*/
-
-		//writeData[i]   = '\n';
-		//writeData[i+1] = '\r';
+		printf("Read: %s\n\r", readData);
 
 
-		UART_Response_Code = UART_write(bus, output, readSize); // Write 2 bytes more than we received for \n\r
+		UART_Response_Code = UART_write(bus, output, outputSize);
 
 		if(UART_Response_Code != 0) {
-			TRACE_WARNING("\n\r taskUARTtest: UART_write returned: %d for bus %d \n\r", UART_Response_Code, bus); // Runs on unsuccessful transmission
+			TRACE_WARNING("\n\r taskUARTtest: UART_write returned: %d for bus %d \n\r", UART_Response_Code, bus);
 		}else{
-			printf("Successful Transmission on bus: %d \n\r", bus);
+			printf("Successful Transmission on bus: %d \n", bus);
 		}
 
-
-
-		vTaskDelay(1000);
+		vTaskDelay(10);
 	}
 }
 
-Boolean SAM_UART_Test() {
+Boolean SAM_UART_Read_And_Write_Test() {
 	int UART_Response_Code = 0;
-	//unsigned int bus2type = 0;
+	unsigned int bus2type = 0;
 	xTaskHandle taskUART0testHandle; //, taskUART2testHandle;
 	static UARTbus UARTtestBus[2] = {bus0_uart, bus2_uart};
 
@@ -79,7 +67,7 @@ Boolean SAM_UART_Test() {
 	// The timeout is 0x2580 which equals 1 second: time in seconds = HEX(speed/baudrate)
 
 	UARTconfig configBus0 = {.mode = AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
-								.baudrate = 9600, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0x2580};
+								.baudrate = 115200, .timeGuard = 1, .busType = rs232_uart, .rxtimeout = 0x2580};
 
 	/*
 	UARTconfig configBus2 = {.mode = AT91C_US_USMODE_HWHSH  | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
@@ -103,6 +91,8 @@ Boolean SAM_UART_Test() {
 		while(1);
 	}
 
+	//UART_setPostTransferDelay(bus0_uart, 10L);
+
 	printf("Started \n");
 
 	/*
@@ -115,22 +105,13 @@ Boolean SAM_UART_Test() {
 	*/
 
 	// Instantiate two separate versions of taskUARTtest and pass different bus-id's as a parameter.
-	xTaskGenericCreate(taskSAM_UART_Test, (const signed char*)"taskUARTtest-0", 1024, (void*)&UARTtestBus[0], 2, &taskUART0testHandle, NULL, NULL);
+	xTaskGenericCreate(taskSAM_UART_Read_And_Write_Test, (const signed char*)"taskUARTtest-0", 1024, (void*)&UARTtestBus[0], 2, &taskUART0testHandle, NULL, NULL);
 	//xTaskGenericCreate(taskSAM_UART_Test, (const signed char*)"taskUARTtest-2", 1024, (void*)&UARTtestBus[1], 2, &taskUART2testHandle, NULL, NULL);
 
 
 	printf("\n\n\r");
 
-
-	/*
-	UART_Response_Code = UART_stop(bus2_uart);
-	if(UART_Response_Code != 0) {
-		TRACE_WARNING("\n\r UARTtest: UART_start returned %d! \n\r", UART_Response_Code); // Return value of UART Bus 2
-		while(1);
-	}
-	*/
-
-	vTaskDelay(1000);
+	vTaskDelay(0);
 
 	return FALSE;
 }
