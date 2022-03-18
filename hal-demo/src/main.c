@@ -20,6 +20,7 @@
 #include "Tests/boardTest.h"
 #include "Tests/checksumTest.h"
 #include "Tests/SDCardTest.h"
+#include "Tests/SPITest.h"
 
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>
@@ -66,6 +67,8 @@ Boolean selectAndExecuteTest() {
 	Boolean offerMoreTests = TRUE;
 
 	printf( "\n\r Select a test to perform: \n\r");
+
+	/*
 	printf("\t 1) I2C \n\r");
 	printf("\t 2) SD-Card File System \n\r");
 	printf("\t 3) SPI + FRAM + RTC \n\r");
@@ -83,9 +86,20 @@ Boolean selectAndExecuteTest() {
 	printf("\t 15) Checksum Test \n\r");
 	printf("\t 16) I2C Slave Test \n\r");
 
+	*/
+
+	printf("\t 1) SPI Test Task \n\r");
+
 	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
 
 	switch(selection) {
+	case 1:
+		offerMoreTests = SPITest();
+		break;
+	}
+
+
+	/*
 	case 1:
 		offerMoreTests = I2Ctest();
 		break;
@@ -136,6 +150,7 @@ Boolean selectAndExecuteTest() {
 	default:
 		break;
 	}
+	*/
 
 	return offerMoreTests;
 }
@@ -172,8 +187,10 @@ void taskMain() {
 	//vTaskSuspend(NULL);
 
 	while(1) {
-		LED_toggle(led_1);
-		vTaskDelay(500);
+		//LED_toggle(led_1);
+		LED_wave(1);
+		LED_wave(1);
+		vTaskDelay(1);
 	}
 
 }
