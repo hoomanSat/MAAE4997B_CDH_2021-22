@@ -15,7 +15,6 @@
 #include "Tests/PinTest.h"
 #include "Tests/LEDtest.h"
 #include "Tests/PWMtest.h"
-#include "Tests/TimeTest.h"
 #include "Tests/USBdeviceTest.h"
 #include "Tests/SupervisorTest.h"
 #include "Tests/boardTest.h"
@@ -46,6 +45,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <Tests/TaskSequenceTimeTest.h>
 
 #define ENABLE_MAIN_TRACES 1
 #if ENABLE_MAIN_TRACES
@@ -73,6 +73,7 @@ Boolean selectAndExecuteTest() {
 	printf("\t 4) ADC Continuous Mode \n\r");
 	printf("\t 5) PWM \n\r");
 	printf("\t 6) I2C \n\r");
+	printf("\t 7) Task Sequence Time Test \n\r");
 
 	// unused cases have been commented out below
 /*	printf("\t 2) SD-Card File System \n\r");
@@ -113,8 +114,13 @@ Boolean selectAndExecuteTest() {
 
 	case 6:
 		offerMoreTests = I2Ctest();
-		default:
 		break;
+
+	case 7:
+		offerMoreTests = TaskSequenceTimeTest();
+		default;
+		break;
+
 
 	// unused cases have been commented out below
 /*	case 2:

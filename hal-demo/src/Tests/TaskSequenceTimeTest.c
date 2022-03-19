@@ -1,30 +1,11 @@
 /*
- * TimeTest.c
+ * TaskSequenceTimeTest.c
  *
- *  Created on: 10 dec. 2014
- *      Author: malv
+ *  	Created: 2022-03-18
+ *      Author: Dante Corsi
  */
 
-#include "Tests/TimeTest.h"
-
-#include <at91/commons.h>
-#include <at91/utility/trace.h>
-
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/semphr.h>
-
-#include <hal/boolean.h>
-#include <hal/errors.h>
-#include <hal/supervisor.h>
-#include <hal/Drivers/SPI.h>
-#include <hal/Drivers/LED.h>
-#include <hal/Drivers/I2C.h>
-#include <hal/Timing/Time.h>
-#include <hal/Timing/RTC.h>
-
-#include <stdlib.h>
-#include <string.h>
+#include <Tests/TaskSequenceTimeTest.h>
 
 // Initialization
 
@@ -167,7 +148,7 @@ void taskEpochTest() {
 
 }
 
-Boolean TimeTest() {
+Boolean TaskSequenceTimeTest() {
 	xTaskHandle taskTimeTestHandle;
 
 	xTaskGenericCreate(taskEpochTest, (const signed char*)"taskEpochTest", 1024, NULL, 2, &taskTimeTestHandle, NULL, NULL);

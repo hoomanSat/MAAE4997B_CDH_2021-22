@@ -1,15 +1,33 @@
 /*
- * TimeTest.h
+ * TaskSequenceTimeTest.h
  *
- *  Created on: 10 dec. 2014
- *      Author: malv
+ *  	Created: 2022-03-18
+ *      Author: Dante Corsi
  */
 
 #ifndef TIMETEST_H_
 #define TIMETEST_H_
 
 #include <hal/boolean.h>
+#include <at91/commons.h>
+#include <at91/utility/trace.h>
 
-Boolean TimeTest();
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/semphr.h>
+
+#include <hal/boolean.h>
+#include <hal/errors.h>
+#include <hal/supervisor.h>
+#include <hal/Drivers/SPI.h>
+#include <hal/Drivers/LED.h>
+#include <hal/Drivers/I2C.h>
+#include <hal/Timing/Time.h>
+#include <hal/Timing/RTC.h>
+
+#include <stdlib.h>
+#include <string.h>
+
+Boolean TaskSequenceTimeTest();
 
 #endif /* TIMETEST_H_ */
