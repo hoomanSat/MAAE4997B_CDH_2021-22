@@ -15,7 +15,7 @@
 #define TESTCOMMAND1		"001-1111111111"	// test command 1 for use with raw input testmode
 #define TESTCOMMAND2		"002-1111111113"	// test command 2 for use with raw input testmode
 
-// Command and Timetag Interpreter
+// Task Sequencer using command id and unixtime timecode
 
 void taskCommandSequencerRAW()
 {
