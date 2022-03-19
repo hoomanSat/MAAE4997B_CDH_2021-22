@@ -5,7 +5,7 @@
  *      Author: Dante Corsi
  */
 
-#include <Tests/TaskSequenceTimeTest.h>
+#include <Tests/TaskSequenceTimeTest.h> // all includes are enclosed in the header file
 
 // Initialization
 #define DEFAULT_PRIORITY	2			// default task priority level
@@ -14,13 +14,12 @@
 
 // Command and Timetag Interpreter
 
-void taskCommandSequencer(void)
+void taskCommandSequencer()
 {
 	xTaskHandle sequencedTaskHandle;
 	int incomingCommandCount = 0;
 	unsigned char readCommandCount[64] = {0};
 	unsigned char readCommands[64] = {0};
-
 
 	TRACE_DEBUG_WP("\n\r Task: interpretUplinkedCommands: Starting. \n\r");
 
@@ -35,13 +34,13 @@ void taskCommandSequencer(void)
 
 	char commandArray[incomingCommandCount]; // create an array to store the incoming commands as text strings, and for eventual parsing
 
-	for (int i; i < incomingCommandCount; i++) // read commands in order they arrive, store in array
+	for (int i = 0; i < incomingCommandCount; i++) // read commands in order they arrive, store in array
 	{
 		commandArray[i] = I2C_read(I2C_ADDRESS, readCommands, COMMAND_LENGTH);
 		printf("\n\r commandArray: %d \n\r", commandArray[i]); // uplinked command format should be "001-1647666294" where the first three characters are the command code, and the second set of letters are the timetag in epoch
 	}
 
-	for (int i; i < incomingCommandCount; i++) // create a generic task for each entry in the command array, pass the time tag as input parameter
+	for (int i = 0; i < incomingCommandCount; i++) // create a generic task for each entry in the command array, pass the time tag as input parameter
 	{
 		// get first three chars from command array entry, these are the command code or id which identifies the corresponding task, then concat at the end of "task..." and pass to xTaskGenericCreate
 		char commandCode[3];
@@ -49,9 +48,8 @@ void taskCommandSequencer(void)
 		char taskName[7] = "task";
 		int k = 0;
 
-
 		strncpy(commandCode,commandArray,3);
-		commandCode[3] = 0;
+		commandCode[2] = 0;
 		printf("\n\r commandCode: %s \n\r",commandCode); // prints the command code for debug and validation
 
 		strcat(taskName, commandCode); // concatenate "task" with the 3 digit command code
@@ -63,52 +61,48 @@ void taskCommandSequencer(void)
 				timeCode[k] = commandArray[j];
 				k++;
 			}
-			timeCode[10] = 0;
+			timeCode[9] = 0;
 		}
 		printf("\n\r timeCode: %s \n\r",timeCode); // prints the time code for debug and validation
 		xTaskGenericCreate(taskCode, (const signed char*) "sequencedTask", 1024, (void *) timeCode, DEFAULT_PRIORITY, &sequencedTaskHandle, NULL, NULL); // create tasks based on the task sequence obtained from i2c
 	}
 }
 
-
 // define the placeholder tasks used for this test: each task should simply print to the console, then self-delete
 void task001(void* inputParameter)
 {
-	// task timing -> get current epoch from RTC, subtract from taskRunEpoch defined by command uplink, this yields the number of seconds until the task should run, now convert to ms and pass to vTaskDelay
-	char taskRunEpoch = (char *) inputParameter;
+	// task timing -> get current epoch from realtime clock (RTC), subtract from taskRunEpoch defined by command uplink, this yields the number of seconds until the task should run, now convert to ms and pass to vTaskDelay
+	char * taskRunEpoch = (char *) inputParameter;
 	unsigned long currentEpochTime = 0;
 	currentEpochTime = Time_getUnixEpoch(&currentEpochTime);
 	long taskEpochTime = (long) taskRunEpoch;
 
-	long taskDelay = (taskEpochTime - currentEpochTime)*1000;
-	vTaskDelay(pdMS_TO_TICKS(taskDelay)); // sets the delay between the current time and the desired task run time
+	long taskTimeDelay = (taskEpochTime - currentEpochTime)*1000;
+	vTaskDelay(taskTimeDelay/portTICK_RATE_MS); // sets the delay between the current time and the desired task run time
 
 	for (;;)
 	{
 		printf("\n\r Executing Task 001");
 		vTaskDelete(NULL); // tasks typically run in an infinite for loop, but by including the vTaskDelete function, we allow the task to execute once after the desired delay, then delete itself from the scheduler
 	}
-
 }
 
 void task002(void* inputParameter)
 {
-	char taskRunEpoch = (char *) inputParameter;
+	char * taskRunEpoch = (char *) inputParameter;
 	unsigned long currentEpochTime = 0;
 	currentEpochTime = Time_getUnixEpoch(&currentEpochTime);
 	long taskEpochTime = (long) taskRunEpoch;
 
-	long taskDelay = (taskEpochTime - currentEpochTime)*1000;
-	vTaskDelay(pdMS_TO_TICKS(taskDelay));
+	long taskTimeDelay = (taskEpochTime - currentEpochTime)*1000;
+	vTaskDelay(taskTimeDelay/portTICK_RATE_MS);
 
 	for(;;)
 	{
 		printf("\n\r Executing Task 002");
 		vTaskDelete(NULL);
 	}
-
 }
-
 
 // unused initEpochTest, ignore
 /*static void initEpochTest(void) {
@@ -243,9 +237,6 @@ void task002(void* inputParameter)
 
 Boolean TaskSequenceTimeTest()
 {
-	xTaskHandle taskCommandSequencer;
-
-	xTaskGenericCreate(taskCommandSequencer, (const signed char*)"taskCommandSequencer", 1024, NULL, 2, &taskCommandSequencer, NULL, NULL);
-
+	taskCommandSequencer();
 	return FALSE;
 }

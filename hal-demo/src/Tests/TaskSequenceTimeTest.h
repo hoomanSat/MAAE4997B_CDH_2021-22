@@ -12,9 +12,12 @@
 #include <at91/utility/trace.h>
 
 #include <freertos/FreeRTOS.h>
+#include <freertos/FreeRTOSConfig.h>
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 #include <freertos/timers.h>
+#include <freertos/projdefs.h>
+#include <freertos/portable/GCC/ARM9_AT91SAM9G20/portmacro.h>
 
 #include <hal/boolean.h>
 #include <hal/errors.h>
