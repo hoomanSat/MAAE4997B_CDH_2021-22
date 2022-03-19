@@ -5,6 +5,11 @@
  *      Author: Sam Dunthorne
  */
 
+// SPI Pinout is on J5 pin GND = 1, CS0 = 12, CS1 = 13, CS2 = 14,
+//MOSI = 17, MISO = 18, CLK = 16
+
+
+
 #include <at91/commons.h>
 #include <at91/utility/trace.h>
 #include <freertos/FreeRTOS.h>
@@ -23,7 +28,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define TEST_RTC	1
+#define TEST_RTC	0
 
 #define FRAM_TEST_TRANSACTION_SIZE	1024
 
@@ -32,7 +37,8 @@ static unsigned char FRAMwriteData[FRAM_TEST_TRANSACTION_SIZE] = {0};
 static unsigned char FRAMwriteVerifyData[FRAM_TEST_TRANSACTION_SIZE] = {0};
 static Boolean FRAMtestOnce = FALSE;
 
-void SPIcallback(SystemContext context, xSemaphoreHandle semaphore) {
+void SPI_Callback(SystemContext context, xSemaphoreHandle semaphore) {
+	printf("Callback Received - Data Should Have Transferred \n\r");
 	signed portBASE_TYPE flag = pdFALSE;
 
 	if(context == task_context) {
@@ -43,14 +49,14 @@ void SPIcallback(SystemContext context, xSemaphoreHandle semaphore) {
 	}
 }
 
-void taskSPItest1() {
+void SPItest1() {
 	int retValInt = 0;
 	unsigned int i, j=0;
 	SPIslaveParameters slaveParams;
 	SPItransfer spiTransfer;
 	xSemaphoreHandle txSemaphore = NULL;
 	unsigned char readData[32] = {0}, writeData[32] = {0}, writeData2[32] = {0};
-	TRACE_DEBUG("\n\r taskSPItest1: Starting. \n\r");
+	TRACE_DEBUG("\n\r SPItest1: Starting. \n\r");
 
 	writeData[0] = 0xEF;
 	for(i=1; i<sizeof(writeData); i++) {
@@ -66,20 +72,21 @@ void taskSPItest1() {
 
 	slaveParams.bus    = bus1_spi;
 	slaveParams.mode   = mode0_spi;
-	slaveParams.slave  = slave1_spi;
+	slaveParams.slave  = slave0_spi;
 	slaveParams.dlybs  = 0;
 	slaveParams.dlybct = 0;
 	slaveParams.busSpeed_Hz = 600000;
 	slaveParams.postTransferDelay = 4;
 
 	spiTransfer.slaveParams = &slaveParams;
-	spiTransfer.callback  = SPIcallback;
+	spiTransfer.callback  = SPI_Callback;
 	spiTransfer.readData  = readData;
 	spiTransfer.writeData = writeData;
 	spiTransfer.transferSize = 10;
 	spiTransfer.semaphore  = txSemaphore;
 
-	while(1) {
+	//while(1)
+	{
 		if(j%2 == 0) {
 			spiTransfer.writeData = writeData;
 		}
@@ -97,7 +104,9 @@ void taskSPItest1() {
 			TRACE_WARNING("\n\r taskSPItest1: SPI_queueTransfer returned: %d! \n\r", retValInt);
 			while(1);
 		}
+
 		else {
+
 			// Make use of the transfer-time: Prepare the other writeBuffer while the transfer is in progress.
 			if(j%2 == 0) {
 				for(i=1; i<sizeof(writeData2); i++) {
@@ -118,7 +127,7 @@ void taskSPItest1() {
 			xSemaphoreGive(txSemaphore);
 		}
 
-		//TRACE_DEBUG(" taskSPItest1: received back: \n\r");
+		//TRACE_DEBUG(" SPItest1: received back: \n\r");
 		//TRACE_DEBUG("0x%X ", readData[0]);
 		for(i=1; i<spiTransfer.transferSize; i++) {
 			//TRACE_DEBUG("0x%X ", readData[i]);
@@ -129,7 +138,7 @@ void taskSPItest1() {
 	}
 }
 
-void taskSPItest2() {
+void SPItest2() {
 	int retValInt = 0;
 	unsigned int i;
 	SPIslaveParameters slaveParams;
@@ -145,14 +154,14 @@ void taskSPItest2() {
 
 	slaveParams.bus    = bus1_spi;
 	slaveParams.mode   = mode0_spi;
-	slaveParams.slave  = slave1_spi;
+	slaveParams.slave  = slave0_spi;
 	slaveParams.dlybs  = 1;
 	slaveParams.dlybct = 1;
 	slaveParams.busSpeed_Hz = 600000;
 	slaveParams.postTransferDelay = 0;
 
 	spiTransfer.slaveParams = &slaveParams;
-	spiTransfer.callback  = SPIcallback;
+	spiTransfer.callback  = SPI_Callback;
 	spiTransfer.readData  = readData;
 	spiTransfer.writeData = writeData;
 	spiTransfer.transferSize = 10;
@@ -179,7 +188,7 @@ void taskSPItest2() {
 	}
 }
 
-void taskFRAMtest() {
+void FRAMtest() {
 	unsigned int i = 0, j = 0;
 	FRAMblockProtect blocks;
 	int retVal;
@@ -195,7 +204,6 @@ void taskFRAMtest() {
 	}
 
 
-	//while(1)
 	{
 		retVal = FRAM_getDeviceID(deviceID);
 		if(retVal != 0) {
@@ -219,7 +227,7 @@ void taskFRAMtest() {
 		while(1);
 	}
 
-	// TODO: Test block-protection!
+	// TODO: Test block-protection!  <-- WUT?
 
 	while(1) {
 		retVal = FRAM_read(FRAMreadData, address, size);
@@ -246,7 +254,6 @@ void taskFRAMtest() {
 		retVal = FRAM_writeAndVerify(FRAMwriteVerifyData, address, size);
 		if(retVal != 0) {
 			TRACE_WARNING(" Error during FRAM_writeAndVerify: %d \n\r", retVal);
-			//while(1);
 		}
 
 		j++;
@@ -260,17 +267,15 @@ void taskFRAMtest() {
 
 }
 
-void taskRTCtest() {
+void RTCtest() {
 
 	// Tests the 'Real Time Clock' (RTC)
 	// The entire SPI bus must be inactive before this test, otherwise the clock may misbehave
-	//
 
 	int retVal;
 	unsigned int i;
 	float temperature;
 	Time time;
-
 
 	TRACE_DEBUG(" Starting RTC test \n\r");
 
@@ -290,7 +295,7 @@ void taskRTCtest() {
 			else {
 				TRACE_DEBUG_WP("seconds: %d \n\r", time.seconds); // As the time is initially set to 7, it should repeat 7, 8, 9, 10 ,11 seconds
 			}
-			vTaskDelay(1001); // I don't know why this is 1001? If it is pausing a second, it should just wait 1000... I don't know though
+			vTaskDelay(800);
 		}
 
 		retVal = RTC_getTemperature(&temperature); // 0 on success, -1 on SPI Fail
@@ -310,35 +315,34 @@ void taskRTCtest() {
 	}
 }
 
-Boolean SPI_FRAM_RTCtest() {
+Boolean SPITest() {
 	int retValInt = 0;
 
 	#if TEST_RTC
 		xTaskHandle taskRTCtestHandle;
 	#else
-		xTaskHandle taskFRAMtestHandle;
+		//xTaskHandle FRAMtestHandle;
+		xTaskHandle SPItest1Handle;
 	#endif
 
-		retValInt = SPI_start(bus0_spi, slave0_spi); //Returns 0 on success -1 on fail, buses 0, 1, 2 initialized by default
-		if(retValInt != 0) {
-			TRACE_WARNING("\n\r SPIandFRAMtest: SPI_start returned %d! \n\r", retValInt);
-			while(1);
-		}
-
-		printf("SPI Successfully initialized!\n\r");
+	retValInt = SPI_start(bus1_spi, slave7_spi); //Returns 0 on success -1 on fail, buses 0, 1, 2 initialized by default
+	if(retValInt != 0) {
+		TRACE_WARNING("\n\r SPITest: SPI_start returned %d! \n\r", retValInt);
+		while(1);
+	}
 
 
 		//Below, if TEST_RTC is 1, it performs an FRAM test, and RTC Test
-		//Otherwise, run SPItest1, SPItest2, FRAMtest (currently inactive, only runs the RTC Test)
+		//Otherwise, run SPItest1, SPItest2, FRAMtest
 
 
 	#if TEST_RTC
 		// Perform a basic FRAM test and then test the RTC
-		xTaskGenericCreate(taskRTCtest, (const signed char*)"taskRTCtest", 10240, NULL, 2, &taskRTCtestHandle, NULL, NULL);
+		xTaskGenericCreate(RTCtest, (const signed char*)"RTCtest", 10240, NULL, 2, &taskRTCtestHandle, NULL, NULL);
 	#else
-		//xTaskGenericCreate(taskSPItest1, (const signed char*)"taskSPItest1", 10240, NULL, 2, &taskSPItest1Handle, NULL, NULL);
-		//xTaskGenericCreate(taskSPItest2, (const signed char*)"taskSPItest2", 10240, NULL, 2, &taskSPItest2Handle, NULL, NULL);
-		//xTaskGenericCreate(taskFRAMtest, (const signed char*)"taskFRAMtest", 10240, NULL, 2, &taskFRAMtestHandle, NULL, NULL);
+		xTaskGenericCreate(SPItest1, (const signed char*)"SPItest1", 10240, NULL, 2, &SPItest1Handle, NULL, NULL);
+		//xTaskGenericCreate(SPItest2, (const signed char*)"SPItest2", 10240, NULL, 2, &SPItest2Handle, NULL, NULL);
+		//xTaskGenericCreate(FRAMtest, (const signed char*)"FRAMtest", 10240, NULL, 2, &FRAMtestHandle, NULL, NULL);
 	#endif
 
 	return FALSE;

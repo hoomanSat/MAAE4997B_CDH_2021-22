@@ -97,7 +97,7 @@ Boolean selectAndExecuteTest() {
 		offerMoreTests = SPITest();
 		break;
 	}
-
+	offerMoreTests = TRUE;
 
 	/*
 	case 1:
@@ -157,7 +157,7 @@ Boolean selectAndExecuteTest() {
 
 void taskMain() {
 	unsigned int choice;
-	Boolean offerMoreTests = FALSE;
+	Boolean offerMoreTests = TRUE;
 
 	WDT_startWatchdogKickTask(10 / portTICK_RATE_MS, FALSE);
 
@@ -187,10 +187,9 @@ void taskMain() {
 	//vTaskSuspend(NULL);
 
 	while(1) {
-		//LED_toggle(led_1);
 		LED_wave(1);
 		LED_wave(1);
-		vTaskDelay(1);
+		vTaskDelay(50);
 	}
 
 }

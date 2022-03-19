@@ -5,9 +5,17 @@
  *      Author: Sam Dunthorne
  */
 
-#ifndef TESTS_SPITEST_H_
-#define TESTS_SPITEST_H_
+#ifndef SPITEST_H_
+#define SPITEST_H_
 
+#include <hal/boolean.h>
 
+Boolean SPITest();
 
-#endif /* TESTS_SPITEST_H_ */
+/**
+ *      @brief      Starting the Supervisor Controller Test.
+ *      @author     FF.
+ */
+Boolean SupervisorControllerTest(void);
+
+#endif /* SPITEST_H_ */
