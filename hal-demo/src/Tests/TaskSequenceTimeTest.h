@@ -8,13 +8,13 @@
 #ifndef TIMETEST_H_
 #define TIMETEST_H_
 
-#include <hal/boolean.h>
 #include <at91/commons.h>
 #include <at91/utility/trace.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/semphr.h>
+#include <freertos/timers.h>
 
 #include <hal/boolean.h>
 #include <hal/errors.h>
