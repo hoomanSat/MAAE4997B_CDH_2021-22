@@ -19,7 +19,7 @@ void taskCommandSequencer(void)
 	xTaskHandle sequencedTaskHandle;
 	int incomingCommandCount = 0;
 	unsigned char readCommandCount[64] = {0};
-	unsigned char readCommands[64];
+	unsigned char readCommands[64] = {0};
 
 
 	TRACE_DEBUG_WP("\n\r Task: interpretUplinkedCommands: Starting. \n\r");
