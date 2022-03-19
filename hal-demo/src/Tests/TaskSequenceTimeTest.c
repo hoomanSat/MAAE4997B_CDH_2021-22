@@ -8,56 +8,54 @@
 #include <Tests/TaskSequenceTimeTest.h>
 
 // Initialization
-
-#define I2CBUS_SPEED		400000		// I2C bus speed in Hz
-#define I2CBUS_TIMEOUT		20			// Timeout per byte for I2C in .100 milliseconds
-#define TIME_SYNCINTERVAL	60			// RTT and RTC sync interval in seconds
-#define DEFAULT_PRIORITY	2			// Default task priority level
+#define DEFAULT_PRIORITY	2			// default task priority level
+#define I2C_ADDRESS			0x41		// default slave i2c address
+#define COMMAND_LENGTH		14			// default number of characters in a command
 
 // Command and Timetag Interpreter
 
 void taskCommandSequencer(void)
 {
 	xTaskHandle sequencedTaskHandle;
-	unsigned int incomingCommandCount = 0;
+	int incomingCommandCount = 0;
 	unsigned char readCommandCount[64] = {0};
-	unsigned int i = 0;
-	I2Ctransfer i2cRx;
+	unsigned char readCommands[64];
+
 
 	TRACE_DEBUG_WP("\n\r Task: interpretUplinkedCommands: Starting. \n\r");
 
-	i2cRx.readData = readCommandCount;
-	i2cRx.readSize = 2;
-	i2cRx.slaveAddress = 0x41;
-
-	incomingCommandCount = I2C_read(&i2cRx); // read the command count, later used to set command array size
+	incomingCommandCount = I2C_read(I2C_ADDRESS, readCommandCount, 2); // read the command count, later used to set command array size
 	if(incomingCommandCount != 0)
 	{
-		TRACE_WARNING("\n\r interpretUplinkedCommands: Returned uplink command count of: %d \n\r", incomingCommandCount);
+		TRACE_WARNING("\n\r incomingCommandCount: %d \n\r", incomingCommandCount);
 	}
 
-	vTaskDelay(5); // optional delay
+	//unsigned int totalIncomingData = 0;
+	//totalIncomingData = incomingCommandCount * 14;
 
-	char commandArray[incomingCommandCount][25+1]; // create an array to store the incoming commands as text strings, and for eventual parsing
+	char commandArray[incomingCommandCount]; // create an array to store the incoming commands as text strings, and for eventual parsing
 
-	for (int i; i < incomingCommandCount; i++) // read commands in order, store in array, sort array based on timetag value
+	for (int i; i < incomingCommandCount; i++) // read commands in order they arrive, store in array
 	{
-		strcpy(commandArray[i], I2C_read(&i2cRx));
-		printf("\n\r commandArray: Entry #%d is %d \n\r", i, commandArray[i]); // uplinked command format should be "001-1647666294" where the first three characters are the command code, and the second set of letters are the timetag in epoch
+		commandArray[i] = I2C_read(I2C_ADDRESS, readCommands, COMMAND_LENGTH);
+		printf("\n\r commandArray: %d \n\r", commandArray[i]); // uplinked command format should be "001-1647666294" where the first three characters are the command code, and the second set of letters are the timetag in epoch
 	}
 
 	for (int i; i < incomingCommandCount; i++) // create a generic task for each entry in the command array, pass the time tag as input parameter
 	{
 		// get first three chars from command array entry, these are the command code or id which identifies the corresponding task, then concat at the end of "task..." and pass to xTaskGenericCreate
 		char commandCode[3];
-		char *timeCode[10];
-		char taskName[7];
+		char timeCode[10];
+		char taskName[7] = "task";
 		int k = 0;
+
 
 		strncpy(commandCode,commandArray,3);
 		commandCode[3] = 0;
-		taskName = strcat("task", commandCode);
+		printf("\n\r commandCode: %s \n\r",commandCode); // prints the command code for debug and validation
 
+		strcat(taskName, commandCode); // concatenate "task" with the 3 digit command code
+		pdTASK_CODE taskCode = (pdTASK_CODE) taskName;
 		for (int j = 3; j < 14; j++) // loop through the last 10 characters of the command array entry (these characters should represent the time tag) and store in timeCode for later use
 		{
 			while (k < 10)
@@ -67,38 +65,53 @@ void taskCommandSequencer(void)
 			}
 			timeCode[10] = 0;
 		}
-		xTaskGenericCreate(taskName, (const signed char*) "sequencedTask", 1024, (void *) timeCode, DEFAULT_PRIORITY, &sequencedTaskHandle, NULL, NULL);
+		printf("\n\r timeCode: %s \n\r",timeCode); // prints the time code for debug and validation
+		xTaskGenericCreate(taskCode, (const signed char*) "sequencedTask", 1024, (void *) timeCode, DEFAULT_PRIORITY, &sequencedTaskHandle, NULL, NULL); // create tasks based on the task sequence obtained from i2c
 	}
 }
 
 
-// define the placeholder tasks used for this test
+// define the placeholder tasks used for this test: each task should simply print to the console, then self-delete
 void task001(void* inputParameter)
 {
+	// task timing -> get current epoch from RTC, subtract from taskRunEpoch defined by command uplink, this yields the number of seconds until the task should run, now convert to ms and pass to vTaskDelay
 	char taskRunEpoch = (char *) inputParameter;
-	unsigned long getEpochTime = 0;
-	getEpochTime = Time_getUnixEpoch(&getEpochTime);
+	unsigned long currentEpochTime = 0;
+	currentEpochTime = Time_getUnixEpoch(&currentEpochTime);
+	long taskEpochTime = (long) taskRunEpoch;
 
+	long taskDelay = (taskEpochTime - currentEpochTime)*1000;
+	vTaskDelay(pdMS_TO_TICKS(taskDelay)); // sets the delay between the current time and the desired task run time
 
+	for (;;)
+	{
+		printf("\n\r Executing Task 001");
+		vTaskDelete(NULL); // tasks typically run in an infinite for loop, but by including the vTaskDelete function, we allow the task to execute once after the desired delay, then delete itself from the scheduler
+	}
 
-	printf("\n\r Executing Task 001");
 }
 
 void task002(void* inputParameter)
 {
 	char taskRunEpoch = (char *) inputParameter;
-	printf("\n\r Executing Task 002");
-}
+	unsigned long currentEpochTime = 0;
+	currentEpochTime = Time_getUnixEpoch(&currentEpochTime);
+	long taskEpochTime = (long) taskRunEpoch;
 
-void task003(void* inputParameter)
-{
-	char taskRunEpoch = (char *) inputParameter;
-	printf("\n\r Executing Task 003");
+	long taskDelay = (taskEpochTime - currentEpochTime)*1000;
+	vTaskDelay(pdMS_TO_TICKS(taskDelay));
+
+	for(;;)
+	{
+		printf("\n\r Executing Task 002");
+		vTaskDelete(NULL);
+	}
+
 }
 
 
 // unused initEpochTest, ignore
-static void initEpochTest(void) {
+/*static void initEpochTest(void) {
 	int retVal;
 	Time fallbackTime = {.seconds = 0, .minutes = 0, .hours = 0, .day = 1, .date = 1, .month = 1, .year = 0xAA};
 	Time tempTime = {0};
@@ -133,11 +146,11 @@ static void initEpochTest(void) {
 	{
 		TRACE_WARNING("Initializing Supervisor failed with error %d! \n\r", retVal);
 	}
-}
+}*/
 
 
 // unused taskEpochTest
-void taskEpochTest() {
+/*void taskEpochTest() {
 	//unsigned int testIteration;
 	unsigned long set_epochtime = 946684800;
 	unsigned long get_epochtime = 0;
@@ -226,7 +239,7 @@ void taskEpochTest() {
 	// This would cause the watchdog to reset the ARM, this is done on purpose to test the watchdog.
 	while(1);
 
-}
+}*/
 
 Boolean TaskSequenceTimeTest()
 {

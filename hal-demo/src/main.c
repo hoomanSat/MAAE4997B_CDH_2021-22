@@ -118,7 +118,9 @@ Boolean selectAndExecuteTest() {
 
 	case 7:
 		offerMoreTests = TaskSequenceTimeTest();
-		default;
+		break;
+
+	default:
 		break;
 
 
