@@ -43,7 +43,6 @@ void SPIcallback(SystemContext context, xSemaphoreHandle semaphore) {
 	}
 }
 
-
 void taskSPItest1() {
 	int retValInt = 0;
 	unsigned int i, j=0;
@@ -262,43 +261,49 @@ void taskFRAMtest() {
 }
 
 void taskRTCtest() {
+
+	// Tests the 'Real Time Clock' (RTC)
+	// The entire SPI bus must be inactive before this test, otherwise the clock may misbehave
+	//
+
 	int retVal;
 	unsigned int i;
 	float temperature;
 	Time time;
+
 
 	TRACE_DEBUG(" Starting RTC test \n\r");
 
 	RTC_start();
 
 	while(1) {
-		retVal = RTC_testGetSet(); // This will set the seconds value to 7, amongst others
+		retVal = RTC_testGetSet(); // This will set the seconds value to 7, amongst others  <-- Useless comment
 		if(retVal != 0) {
-			TRACE_WARNING("RTC_testGetSet returned: %d \n\r", retVal);
+			TRACE_WARNING("RTC_testGetSet returned: %d \n\r", retVal); // Only if SPI does not initialize
 		}
 
 		for(i=0; i<5; i++) { // Should print 7-11 seconds
-			retVal = RTC_getTime(&time);
+			retVal = RTC_getTime(&time); // Checks the time, if fail print error, otherwise prints the time in seconds
 			if(retVal != 0) {
 				TRACE_WARNING("RTC_getTime returned: %d \n\r", retVal);
 			}
 			else {
-				TRACE_DEBUG_WP("seconds: %d \n\r", time.seconds);
+				TRACE_DEBUG_WP("seconds: %d \n\r", time.seconds); // As the time is initially set to 7, it should repeat 7, 8, 9, 10 ,11 seconds
 			}
-			vTaskDelay(1001);
+			vTaskDelay(1001); // I don't know why this is 1001? If it is pausing a second, it should just wait 1000... I don't know though
 		}
 
-		retVal = RTC_getTemperature(&temperature);
+		retVal = RTC_getTemperature(&temperature); // 0 on success, -1 on SPI Fail
 		if(retVal != 0) {
 			TRACE_WARNING("RTC_getTemp returned: %d \n\r", retVal);
 		}
 		else {
-			TRACE_DEBUG_WP("RTC temperature: %d.", (int)temperature);
+			TRACE_DEBUG_WP("RTC temperature: %d.", (int)temperature);  // output Clock temp
 			if(temperature < 0) {
-				temperature = temperature * (-1);
+				temperature = temperature * (-1); // Bug Catching?  -ve temp may very well happen on orbit so we should check this
 			}
-			temperature = temperature - (unsigned int)temperature;
-			TRACE_DEBUG_WP("%d \n\r", (unsigned int)(temperature*100));
+			temperature = temperature - (unsigned int)temperature; // Pardon? Why?
+			TRACE_DEBUG_WP("%d \n\r", (unsigned int)(temperature*100)); // Prints temp again?
 		}
 
 
@@ -308,26 +313,35 @@ void taskRTCtest() {
 Boolean SPI_FRAM_RTCtest() {
 	int retValInt = 0;
 
-#if TEST_RTC
-	xTaskHandle taskRTCtestHandle;
-#else
-	xTaskHandle taskFRAMtestHandle;
-#endif
+	#if TEST_RTC
+		xTaskHandle taskRTCtestHandle;
+	#else
+		xTaskHandle taskFRAMtestHandle;
+	#endif
 
-	retValInt = SPI_start(bus0_spi, slave0_spi);
-	if(retValInt != 0) {
-		TRACE_WARNING("\n\r SPIandFRAMtest: SPI_start returned %d! \n\r", retValInt);
-		while(1);
-	}
-#if TEST_RTC
-	// Perform a basic FRAM test and then test the RTC
-	xTaskGenericCreate(taskRTCtest, (const signed char*)"taskRTCtest", 10240, NULL, 2, &taskRTCtestHandle, NULL, NULL);
-#else
-	//xTaskGenericCreate(taskSPItest1, (const signed char*)"taskSPItest1", 10240, NULL, 2, &taskSPItest1Handle, NULL, NULL);
-	//xTaskGenericCreate(taskSPItest2, (const signed char*)"taskSPItest2", 10240, NULL, 2, &taskSPItest2Handle, NULL, NULL);
-	xTaskGenericCreate(taskFRAMtest, (const signed char*)"taskFRAMtest", 10240, NULL, 2, &taskFRAMtestHandle, NULL, NULL);
-#endif
+		retValInt = SPI_start(bus0_spi, slave0_spi); //Returns 0 on success -1 on fail, buses 0, 1, 2 initialized by default
+		if(retValInt != 0) {
+			TRACE_WARNING("\n\r SPIandFRAMtest: SPI_start returned %d! \n\r", retValInt);
+			while(1);
+		}
+
+		printf("SPI Successfully initialized!\n\r");
+
+
+		//Below, if TEST_RTC is 1, it performs an FRAM test, and RTC Test
+		//Otherwise, run SPItest1, SPItest2, FRAMtest (currently inactive, only runs the RTC Test)
+
+
+	#if TEST_RTC
+		// Perform a basic FRAM test and then test the RTC
+		xTaskGenericCreate(taskRTCtest, (const signed char*)"taskRTCtest", 10240, NULL, 2, &taskRTCtestHandle, NULL, NULL);
+	#else
+		//xTaskGenericCreate(taskSPItest1, (const signed char*)"taskSPItest1", 10240, NULL, 2, &taskSPItest1Handle, NULL, NULL);
+		//xTaskGenericCreate(taskSPItest2, (const signed char*)"taskSPItest2", 10240, NULL, 2, &taskSPItest2Handle, NULL, NULL);
+		//xTaskGenericCreate(taskFRAMtest, (const signed char*)"taskFRAMtest", 10240, NULL, 2, &taskFRAMtestHandle, NULL, NULL);
+	#endif
 
 	return FALSE;
 }
+
 

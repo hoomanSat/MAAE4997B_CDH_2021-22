@@ -43,6 +43,7 @@ void SPIcallback(SystemContext context, xSemaphoreHandle semaphore) {
 	}
 }
 
+
 void taskSPItest1() {
 	int retValInt = 0;
 	unsigned int i, j=0;
@@ -329,4 +330,6 @@ Boolean SPI_FRAM_RTCtest() {
 
 	return FALSE;
 }
+
+
 
