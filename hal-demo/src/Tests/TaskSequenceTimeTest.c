@@ -8,13 +8,66 @@
 #include <Tests/TaskSequenceTimeTest.h> // all includes are enclosed in the header file
 
 // Initialization
-#define DEFAULT_PRIORITY	2			// default task priority level
-#define I2C_ADDRESS			0x41		// default slave i2c address
-#define COMMAND_LENGTH		14			// default number of characters in a command
+#define DEFAULT_PRIORITY	2					// default task priority level
+#define I2C_ADDRESS			0x41				// default slave i2c address
+#define COMMAND_LENGTH		14					// default number of characters in a command
+#define TESTMODE			1					// (1: run the taskCommandSequencer with I2C input, 0: run the taskCommandSequencer using raw manual inputs
+#define TESTCOMMAND1		"001-1111111111"	// test command 1 for use with raw input testmode
+#define TESTCOMMAND2		"002-1111111113"	// test command 2 for use with raw input testmode
 
 // Command and Timetag Interpreter
 
-void taskCommandSequencer()
+void taskCommandSequencerRAW()
+{
+	xTaskHandle sequencedTaskHandle;
+	int incomingCommandCount = 2; // specify manually the number of commands you wish to test
+	char *TEST_COMMAND_ARRAY[2];
+	TEST_COMMAND_ARRAY[0]=TESTCOMMAND1;
+	TEST_COMMAND_ARRAY[1]=TESTCOMMAND2;
+
+	TRACE_DEBUG_WP("\n\r Task: interpretUplinkedCommands: Starting. \n\r");
+
+	{
+		TRACE_WARNING("\n\r incomingCommandCount: %d \n\r", incomingCommandCount);
+	}
+
+	char commandArray[incomingCommandCount]; // create an array to store the incoming commands as text strings, and for eventual parsing
+
+	for (int i = 0; i < incomingCommandCount; i++) // read commands in order they arrive, store in array
+	{
+		commandArray[i] = *TEST_COMMAND_ARRAY[i];
+		printf("\n\r commandArray: %d \n\r", commandArray[i]); // uplinked command format should be "001-1647666294" where the first three characters are the command code, and the second set of letters are the timetag in epoch
+	}
+
+	for (int i = 0; i < incomingCommandCount; i++) // create a generic task for each entry in the command array, pass the time tag as input parameter
+	{
+		// get first three chars from command array entry, these are the command code or id which identifies the corresponding task, then concat at the end of "task..." and pass to xTaskGenericCreate
+		char commandCode[3];
+		char timeCode[10];
+		char taskName[7] = "task";
+		int k = 0;
+
+		strncpy(commandCode,commandArray,3);
+		commandCode[2] = 0;
+		printf("\n\r commandCode: %s \n\r",commandCode); // prints the command code for debug and validation
+
+		strcat(taskName, commandCode); // concatenate "task" with the 3 digit command code
+		pdTASK_CODE taskCode = (pdTASK_CODE) taskName;
+		for (int j = 3; j < 14; j++) // loop through the last 10 characters of the command array entry (these characters should represent the time tag) and store in timeCode for later use
+		{
+			while (k < 10)
+			{
+				timeCode[k] = commandArray[j];
+				k++;
+			}
+			timeCode[9] = 0;
+		}
+		printf("\n\r timeCode: %s \n\r",timeCode); // prints the time code for debug and validation
+		xTaskGenericCreate(taskCode, (const signed char*) "sequencedTask", 1024, (void *) timeCode, DEFAULT_PRIORITY, &sequencedTaskHandle, NULL, NULL); // create tasks based on the task sequence obtained from i2c
+	}
+}
+
+void taskCommandSequencerI2C()
 {
 	xTaskHandle sequencedTaskHandle;
 	int incomingCommandCount = 0;
@@ -104,7 +157,7 @@ void task002(void* inputParameter)
 	}
 }
 
-// unused initEpochTest, ignore
+// unused initEpochTest
 /*static void initEpochTest(void) {
 	int retVal;
 	Time fallbackTime = {.seconds = 0, .minutes = 0, .hours = 0, .day = 1, .date = 1, .month = 1, .year = 0xAA};
@@ -237,6 +290,15 @@ void task002(void* inputParameter)
 
 Boolean TaskSequenceTimeTest()
 {
-	taskCommandSequencer();
+	if (TESTMODE == 0)
+	{
+		taskCommandSequencerRAW();
+	}
+
+	if (TESTMODE == 1)
+	{
+		taskCommandSequencerI2C();
+	}
+
 	return FALSE;
 }
