@@ -77,7 +77,6 @@ Boolean SAM_UART_Read_Test() {
 	xTaskGenericCreate(taskSAM_UART_Read_Test, (const signed char*)"UARTtest-0", 1024, (void*)&UARTtestBus[0], 2, &UART0testHandle, NULL, NULL);
 	xTaskGenericCreate(taskSAM_UART_Read_Test, (const signed char*)"UARTtest-2", 1024, (void*)&UARTtestBus[1], 2, &UART2testHandle, NULL, NULL);
 
-
 	printf("\n\n\r");
 
 	vTaskDelay(0); // Must have no delay otherwise you may lose data

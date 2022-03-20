@@ -25,11 +25,11 @@
 
 void taskSAM_UART_Read_And_Write_Test(void *arguments) {
 	int UART_Response_Code = 0;
-	unsigned int readSize = 5;
-	unsigned char readData[5] = {0};
-	unsigned char writeData[8] = {0};
+	unsigned int readSize = 32;
+	unsigned char readData[32] = {0};
+	unsigned char writeData[16] = {0};
 	UARTbus bus = *((UARTbus*)arguments);
-	char* output = "UART Sucks\n\r";
+	char* output = "Hello Arduino!\n\r";
 	unsigned int outputSize = 12;
 
 
@@ -42,7 +42,6 @@ void taskSAM_UART_Read_And_Write_Test(void *arguments) {
 		}
 
 		printf("Read: %s\n\r", readData);
-
 
 		UART_Response_Code = UART_write(bus, output, outputSize);
 
