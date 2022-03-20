@@ -88,7 +88,7 @@ Boolean selectAndExecuteTest() {
 	printf("\t 15) Checksum Test \n\r");
 	printf("\t 17) I2C Slave Test \n\r");*/
 
-	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 6) == 0);
+	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 7) == 0);
 
 	switch(selection) {
 
@@ -168,7 +168,7 @@ void taskMain() {
 	unsigned int choice;
 	Boolean offerMoreTests = FALSE;
 
-	WDT_startWatchdogKickTask(10 / portTICK_RATE_MS, FALSE);
+	WDT_startWatchdogKickTask(100000 / portTICK_RATE_MS, FALSE);
 
 	while(1) {
 		LED_toggle(led_1);
