@@ -36,7 +36,7 @@ void taskI2CslaveTest() {
 	unsigned int i, commandListSize = sizeof(CommandList) / sizeof(CommandList[0]);
 	unsigned int commandCount = 0;
 	unsigned char WriteBuffer[I2C_SLAVE_RECEIVE_BUFFER_SIZE + sizeof(unsigned int)];
-
+	printf("SlaveTest Task starts \n\r");
 	while(1) {
 		// Call I2Cslave_read which will block (make this task sleep until I2C master sends a command).
 		bytesRead = I2Cslave_read(I2CcommandBuffer);
@@ -98,7 +98,7 @@ Boolean I2CslaveTest() {
 	if(retValInt != 0) {
 		TRACE_FATAL("\n\r I2CslaveTest: I2Cslave_start returned: %d! \n\r", retValInt);
 	}
-
+	printf("\n\r I2C Slave Test Make Task \n \r");
 	xTaskGenericCreate(taskI2CslaveTest, (const signed char*)"taskI2CslaveTest", 1024, NULL, configMAX_PRIORITIES-2, &taskI2CslaveTestHandle, NULL, NULL);
 	//taskI2CslaveTest();
 
