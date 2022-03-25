@@ -1,16 +1,19 @@
 /*
  * main.c
- *      Author: Akhil
+ *
  */
 
 #include "Demo/demo_sd.h"
 
 #include "Tests/I2Ctest.h"
 #include "Tests/I2CslaveTest.h"
-#include "Tests/SPI_FRAM_RTCtest.h"
 #include "Tests/FloatingPointTest.h"
 #include "Tests/ADCtest.h"
-#include "Tests/UARTtest.h"
+#include "Tests/UARTReadTest.h"
+#include "Tests/UARTWriteTest.h"
+#include "Tests/UARTReadWriteTest.h"
+#include "Tests/SPITest.h"
+#include "Tests/RTCTest.h"
 #include "Tests/PinTest.h"
 #include "Tests/LEDtest.h"
 #include "Tests/PWMtest.h"
@@ -67,21 +70,19 @@ Boolean selectAndExecuteTest() {
 
 	printf( "\n\r Select a test to perform: \n\r");
 	printf("\t 1) I2C \n\r");
-	printf("\t 2) SD-Card File System \n\r");
-	printf("\t 3) SPI + FRAM + RTC \n\r");
-	printf("\t 4) UART \n\r");
-	printf("\t 5) ADC Single Shot \n\r");
-	printf("\t 6) ADC Continuous Mode \n\r");
-	printf("\t 7) Aux Pins \n\r");
-	printf("\t 8) LED \n\r");
-	printf("\t 9) PWM \n\r");
-	printf("\t 10) USB Device \n\r");
-	printf("\t 11) Supervisor Controller Test - SPI interface \n\r");
-	printf("\t 12) Supervisor Controller Test - I2C interface \n\r");
-	printf("\t 13) Board Test \n\r");
-	printf("\t 14) Time Test \n\r");
-	printf("\t 15) Checksum Test \n\r");
-	printf("\t 16) I2C Slave Test \n\r");
+	printf("\t 2) SPI Test \n\r");
+	printf("\t 3) UART Read \n\r");
+	printf("\t 4) UART Write \n\r");
+	printf("\t 5) UART Read And Write \n\r");
+	printf("\t 6) ADC Single Shot Test \n\r");
+	printf("\t 7) ADC Test \n\r");
+	printf("\t 8) Pin Test \n\r");
+	printf("\t 9) LED Test \n\r");
+	printf("\t 10) PWM Test \n\r");
+	printf("\t 11) Board Test \n\r");
+	printf("\t 12) Checksum Test \n\r");
+	printf("\t 13) RTC Test \n\r");
+
 
 	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
 
@@ -90,50 +91,40 @@ Boolean selectAndExecuteTest() {
 		offerMoreTests = I2Ctest();
 		break;
 	case 2:
-		offerMoreTests = SDCardTest();
+		offerMoreTests = SPITest();
 		break;
 	case 3:
-		offerMoreTests = SPI_FRAM_RTCtest();
+		offerMoreTests = UARTReadTest();
 		break;
 	case 4:
-		offerMoreTests = UARTtest();
+		offerMoreTests = UARTWriteTest();
 		break;
 	case 5:
-		offerMoreTests = ADCtestSingleShot();
+		offerMoreTests = UARTReadWriteTest();
 		break;
 	case 6:
-		offerMoreTests = ADCtest();
+		offerMoreTests = ADCtestSingleShot();
 		break;
 	case 7:
-		offerMoreTests = PinTest();
+		offerMoreTests = ADCtest();
 		break;
 	case 8:
-		offerMoreTests = LEDtest();
+		offerMoreTests = PinTest();
 		break;
 	case 9:
-		offerMoreTests = PWMtest();
+		offerMoreTests = LEDtest();
 		break;
 	case 10:
-		offerMoreTests = USBdeviceTest();
+		offerMoreTests = PWMtest();
 		break;
 	case 11:
-		offerMoreTests = SupervisorTest(FALSE);
-		break;
-	case 12:
-		offerMoreTests = SupervisorTest(TRUE);
-		break;
-	case 13:
 		offerMoreTests = boardTest();
 		break;
-	case 14:
-		offerMoreTests = TimeTest();
-		break;
-	case 15:
+	case 12:
 		offerMoreTests = checksumTest();
 		break;
-	case 16:
-		offerMoreTests = I2CslaveTest();
-	default:
+	case 13:
+		offerMoreTests = RTCTest();
 		break;
 	}
 
@@ -168,12 +159,10 @@ void taskMain() {
 		}
 	}
 
-	// Suspend itself.
-	//vTaskSuspend(NULL);
-
 	while(1) {
-		LED_toggle(led_1);
-		vTaskDelay(500);
+		LED_wave(1);
+		LED_wave(1);
+		vTaskDelay(50);
 	}
 
 }
