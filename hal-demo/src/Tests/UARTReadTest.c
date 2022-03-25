@@ -26,7 +26,7 @@
 
 void taskUARTReadTest(void *arguments) {
 	int UART_Response_Code = 0;
-	unsigned int readSize = 5, i;
+	unsigned int readSize = 5;
 	unsigned char readData[5] = {0};
 	UARTbus bus = *((UARTbus*)arguments);
 

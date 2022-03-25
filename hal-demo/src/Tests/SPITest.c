@@ -5,11 +5,8 @@
  *      Author: Sam Dunthorne
  */
 
-
 // SPI Pinout is on J5 pin GND = 1, CS0 = 12, CS1 = 13, CS2 = 14,
 //MOSI = 17, MISO = 18, CLK = 16
-
-
 
 #include <at91/commons.h>
 #include <at91/utility/trace.h>
@@ -29,14 +26,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#define TEST_RTC	0
-
-#define FRAM_TEST_TRANSACTION_SIZE	1024
-
-static unsigned char FRAMreadData[FRAM_TEST_TRANSACTION_SIZE] = {0};
-static unsigned char FRAMwriteData[FRAM_TEST_TRANSACTION_SIZE] = {0};
-static unsigned char FRAMwriteVerifyData[FRAM_TEST_TRANSACTION_SIZE] = {0};
-static Boolean FRAMtestOnce = FALSE;
 
 void SPI_Callback(SystemContext context, xSemaphoreHandle semaphore) {
 	printf("Callback Received - Data Should Have Transferred \n\r");
@@ -189,115 +178,20 @@ void SPItest2() {
 	}
 }
 
-void FRAMtest() {
-	unsigned int i = 0, j = 0;
-	FRAMblockProtect blocks;
-	int retVal;
-	unsigned char deviceID[9] = {0};
-	unsigned int size = FRAM_TEST_TRANSACTION_SIZE;
-	unsigned int address = 0x10000;
-
-	TRACE_DEBUG(" Starting FRAM test \n\r");
-	retVal = FRAM_start();
-	if(retVal != 0) {
-		TRACE_WARNING(" Error during FRAM_start: %d \n\r", retVal);
-		while(1);
-	}
-
-
-	{
-		retVal = FRAM_getDeviceID(deviceID);
-		if(retVal != 0) {
-			TRACE_WARNING(" Error during FRAM_protectBlocks: %d \n\r", retVal);
-			while(1);
-
-		}
-		TRACE_DEBUG_WP("Device ID: ");
-		for(i=0; i<sizeof(deviceID); i++) {
-			TRACE_DEBUG_WP("0x%02X ", deviceID[i]);
-		}
-		TRACE_DEBUG_WP("\n\r");
-		vTaskDelay(500);
-	}
-
-	// Unprotect all blocks
-	blocks.fields.blockProtect = 0;
-	retVal = FRAM_protectBlocks(blocks);
-	if(retVal != 0) {
-		TRACE_WARNING(" Error during FRAM_protectBlocks: %d \n\r", retVal);
-		while(1);
-	}
-
-	// TODO: Test block-protection!  <-- WUT?
-
-	while(1) {
-		retVal = FRAM_read(FRAMreadData, address, size);
-		if(retVal != 0) {
-			TRACE_WARNING(" Error during FRAM_read: %d \n\r", retVal);
-			while(1);
-		}
-
-		TRACE_DEBUG_WP("\n\r FRAM readPacket contents: \n\r");
-		for(i=0; i<size; i++) {
-			TRACE_DEBUG_WP("0x%02X, ", FRAMreadData[i]);
-			FRAMwriteData[i] = i*2 + j;
-			FRAMwriteVerifyData[i] = FRAMwriteData[i] + 1;
-			FRAMreadData[i] = 0;
-		}
-		TRACE_DEBUG_WP(" \n\r");
-
-		retVal = FRAM_write(FRAMwriteData, address, size);
-		if(retVal != 0) {
-			TRACE_WARNING(" Error during FRAM_write: %d \n\r", retVal);
-			while(1);
-		}
-
-		retVal = FRAM_writeAndVerify(FRAMwriteVerifyData, address, size);
-		if(retVal != 0) {
-			TRACE_WARNING(" Error during FRAM_writeAndVerify: %d \n\r", retVal);
-		}
-
-		j++;
-
-		if(FRAMtestOnce == TRUE) {
-			break;
-		}
-
-		vTaskDelay(1000);
-	}
-
-}
-
-
 Boolean SPITest() {
 	int retValInt = 0;
 
-	#if TEST_RTC
-		xTaskHandle taskRTCtestHandle;
-	#else
-		//xTaskHandle FRAMtestHandle;
-		xTaskHandle SPItest1Handle;
-	#endif
+	xTaskHandle SPItest1Handle;
 
-	retValInt = SPI_start(bus1_spi, slave7_spi); //Returns 0 on success -1 on fail, buses 0, 1, 2 initialized by default
+	retValInt = SPI_start(both_spi, slave7_spi); // Turns on both SPI buses if not already, and initializes all possible slaves
 	if(retValInt != 0) {
 		TRACE_WARNING("\n\r SPITest: SPI_start returned %d! \n\r", retValInt);
 		while(1);
 	}
 
+	xTaskGenericCreate(SPItest1, (const signed char*)"SPItest1", 10240, NULL, 2, &SPItest1Handle, NULL, NULL);
+	//xTaskGenericCreate(SPItest2, (const signed char*)"SPItest2", 10240, NULL, 2, &SPItest2Handle, NULL, NULL);
 
-		//Below, if TEST_RTC is 1, it performs an FRAM test, and RTC Test
-		//Otherwise, run SPItest1, SPItest2, FRAMtest
-
-
-	#if TEST_RTC
-		// Perform a basic FRAM test and then test the RTC
-		xTaskGenericCreate(RTCtest, (const signed char*)"RTCtest", 10240, NULL, 2, &taskRTCtestHandle, NULL, NULL);
-	#else
-		xTaskGenericCreate(SPItest1, (const signed char*)"SPItest1", 10240, NULL, 2, &SPItest1Handle, NULL, NULL);
-		//xTaskGenericCreate(SPItest2, (const signed char*)"SPItest2", 10240, NULL, 2, &SPItest2Handle, NULL, NULL);
-		//xTaskGenericCreate(FRAMtest, (const signed char*)"FRAMtest", 10240, NULL, 2, &FRAMtestHandle, NULL, NULL);
-	#endif
 
 	return FALSE;
 }

@@ -23,6 +23,7 @@
 #include "Tests/boardTest.h"
 #include "Tests/checksumTest.h"
 #include "Tests/SDCardTest.h"
+#include "Tests/FRAMTest.h"
 
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>
@@ -82,6 +83,7 @@ Boolean selectAndExecuteTest() {
 	printf("\t 11) Board Test \n\r");
 	printf("\t 12) Checksum Test \n\r");
 	printf("\t 13) RTC Test \n\r");
+	printf("\t 14) FRAM Test \n\r");
 
 
 	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
@@ -125,6 +127,9 @@ Boolean selectAndExecuteTest() {
 		break;
 	case 13:
 		offerMoreTests = RTCTest();
+		break;
+	case 14:
+		offerMoreTests = FRAMTest();
 		break;
 	}
 

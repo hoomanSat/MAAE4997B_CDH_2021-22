@@ -25,17 +25,6 @@
 #include <string.h>
 #include <stdio.h>
 
-void SPI_Callback(SystemContext context, xSemaphoreHandle semaphore) {
-	signed portBASE_TYPE flag = pdFALSE;
-
-	if(context == task_context) {
-		xSemaphoreGive(semaphore);
-	}
-	else {
-		xSemaphoreGiveFromISR(semaphore, &flag);
-	}
-}
-
 void RTCtest() {
 
 	// Tests the 'Real Time Clock' (RTC)

@@ -27,10 +27,10 @@ void taskUARTReadWriteTest(void *arguments) {
 	int UART_Response_Code = 0;
 	unsigned int readSize = 32;
 	unsigned char readData[32] = {0};
-	unsigned char writeData[16] = {0};
+	//unsigned char writeData[16] = {0};
 	UARTbus bus = *((UARTbus*)arguments);
-	char* output = "Hello Arduino!\n\r";
-	unsigned int outputSize = 12;
+	unsigned char* output = "Hello Arduino!\n\r";
+	unsigned int outputSize = 18;
 
 
 	while(1) {
@@ -57,7 +57,7 @@ void taskUARTReadWriteTest(void *arguments) {
 
 Boolean UARTReadWriteTest() {
 	int UART_Response_Code = 0;
-	unsigned int bus2type = 0;
+	//unsigned int bus2type = 0;
 	xTaskHandle UART0testHandle;
 	xTaskHandle UART2testHandle;
 	static UARTbus UARTtestBus[2] = {bus0_uart, bus2_uart};
