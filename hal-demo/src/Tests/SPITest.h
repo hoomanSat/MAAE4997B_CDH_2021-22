@@ -8,6 +8,6 @@
 #ifndef TESTS_SPITEST_H_
 #define TESTS_SPITEST_H_
 
-
+Boolean SPITest(void);
 
 #endif /* TESTS_SPITEST_H_ */

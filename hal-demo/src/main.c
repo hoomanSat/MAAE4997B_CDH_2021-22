@@ -24,6 +24,7 @@
 #include "Tests/checksumTest.h"
 #include "Tests/SDCardTest.h"
 #include "Tests/FRAMTest.h"
+#include "Tests/EPSTelemetryTest.h"
 
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>

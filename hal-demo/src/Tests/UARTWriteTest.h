@@ -8,6 +8,6 @@
 #ifndef TESTS_UARTWRITETEST_H_
 #define TESTS_UARTWRITETEST_H_
 
-
+Boolean UARTWriteTest(void);
 
 #endif /* TESTS_UARTWRITETEST_H_ */

@@ -8,6 +8,6 @@
 #ifndef TESTS_UARTREADTEST_H_
 #define TESTS_UARTREADTEST_H_
 
-
+Boolean UARTReadTest(void);
 
 #endif /* TESTS_UARTREADTEST_H_ */

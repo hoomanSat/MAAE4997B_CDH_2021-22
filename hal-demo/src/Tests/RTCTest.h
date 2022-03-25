@@ -8,6 +8,6 @@
 #ifndef TESTS_RTCTEST_H_
 #define TESTS_RTCTEST_H_
 
-
+Boolean RTCTest(void);
 
 #endif /* TESTS_RTCTEST_H_ */

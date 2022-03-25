@@ -24,6 +24,6 @@
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 
-Boolean EPSTelemetryTest();
+Boolean EPSTelemetryTest(void);
 
 #endif /* EPSTEST_H_ */
