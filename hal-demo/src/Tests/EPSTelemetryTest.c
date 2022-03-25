@@ -73,5 +73,5 @@ Boolean EPSTelemetryTest() {
 
 	//Run the task
 	taskEPS_I2C_Test();
-	return TRUE;
+	return FALSE;
 }
