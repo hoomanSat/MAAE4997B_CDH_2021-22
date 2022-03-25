@@ -131,6 +131,9 @@ Boolean selectAndExecuteTest() {
 	case 14:
 		offerMoreTests = FRAMTest();
 		break;
+	case 15:
+		offerMoreTests = EPSTelemetryTest();
+		break;
 	}
 
 	return offerMoreTests;
