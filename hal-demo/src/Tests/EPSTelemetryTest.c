@@ -11,25 +11,24 @@
 
 void taskEPS_I2C_Test() {
 	int retValInt = 0;
-	unsigned char firstCommand = 0x00;
-	unsigned char secondCommand = 0x00;
+	unsigned char COMMAND = 0x50; // command byte
+    unsigned char DATA = 0x09; // data byte
 
-	retValInt = I2C_write(EPS_ADDRESS, firstCommand, 1); // write the first i2c command
+	retValInt = I2C_write(EPS_ADDRESS, &COMMAND, 1); // write the first i2c command
 	if (retValInt != 0) {
-		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_write #1 returned: %d \n\r", retValInt);
+		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_write #1 returned: %d \n\r", retValInt); // returns the error code for debugging
 	}
 	else {
-		printf("\n\r taskEPS_I2C_Test: I2C_write #1 successful!");
+		printf("\n\r taskEPS_I2C_Test: I2C_write #1 successful!"); // print this on success
 	}
 
-	retValInt = I2C_write(EPS_ADDRESS, secondCommand, 1); // write the second i2c command
+	retValInt = I2C_write(EPS_ADDRESS, &DATA, 1); // write the second i2c command
 	if (retValInt != 0) {
-		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_write #2 returned: %d \n\r", retValInt);
+		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_write #2 returned: %d \n\r", retValInt); // returns the error code for debugging
 	}
 	else {
-		printf("\n\r taskEPS_I2C_Test: I2C_write #2 successful!");
+		printf("\n\r taskEPS_I2C_Test: I2C_write #2 successful!"); // print this on success
 	}
-
 }
 
 Boolean EPSTelemetryTest() {
@@ -50,5 +49,8 @@ Boolean EPSTelemetryTest() {
 
 	//Run the task
 	taskEPS_I2C_Test();
+
+	I2C_stop(); // stops the i2c bus once communication is done
+
 	return TRUE;
 }
