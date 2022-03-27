@@ -85,6 +85,7 @@ Boolean selectAndExecuteTest() {
 	printf("\t 12) Checksum Test \n\r");
 	printf("\t 13) RTC Test \n\r");
 	printf("\t 14) FRAM Test \n\r");
+	printf("\t 15) EPSCmd");
 
 
 	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
