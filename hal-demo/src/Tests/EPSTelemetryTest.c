@@ -52,5 +52,5 @@ Boolean EPSTelemetryTest() {
 
 	I2C_stop(); // stops the i2c bus once communication is done
 
-	return TRUE;
+	return FALSE;
 }
