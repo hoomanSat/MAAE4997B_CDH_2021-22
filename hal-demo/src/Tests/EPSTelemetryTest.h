@@ -11,6 +11,7 @@
 #include <at91/commons.h>
 #include <at91/utility/trace.h>
 
+#include <hal/Utility/util.h>
 #include <hal/boolean.h>
 #include <hal/Drivers/LED.h>
 #include <hal/Drivers/I2C.h>
