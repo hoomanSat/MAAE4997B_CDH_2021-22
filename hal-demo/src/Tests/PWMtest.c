@@ -9,6 +9,7 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <string.h>
 
 #include <hal/boolean.h>
 #include <hal/Drivers/ADC.h>
