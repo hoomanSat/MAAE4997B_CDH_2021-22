@@ -2,6 +2,7 @@
  * EPSTelemetryTest.c
  *
  *  Created on: 2022-02-07
+ *  Updated on: 2022-04-05
  *      Author: Dante Corsi
  */
 
@@ -78,9 +79,6 @@ void taskEPS_I2C_Test() {
 	else {
 		printf("\n\r taskEPS_I2C_Test: I2C_read #1 successful!"); // print this on success
 	}
-
-
-
 
 }
 
