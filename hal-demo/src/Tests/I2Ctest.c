@@ -94,11 +94,10 @@ void taskQueuedI2Ctest1() {
 	I2CgenericTransfer i2cTx;
 	I2CtransferStatus txResult;
 	xSemaphoreHandle txSemaphore = NULL;
-	unsigned char readData[32] = {0}, writeData[32] = {0};
+	unsigned char readData[64] = {0}, writeData[64] = {0};
 	TRACE_DEBUG("\n\r taskQueuedI2Ctest1: Starting. \n\r");
 
-	writeData[0] = 0x37;
-	//WRITE DATA: EF 02 04 06 08 0A 0C 0E 10-12 14 16 18 1A 1C 1E 20-22 24 26 28 2A 2C 2E 30-32 34 36 38 3A 3C 3E
+	writeData[0] = 0xEF;
 	for(i=1; i<sizeof(writeData); i++) {
 		writeData[i] = (unsigned char)(i*2);
 	}
@@ -108,20 +107,20 @@ void taskQueuedI2Ctest1() {
 		TRACE_WARNING("\n\r taskQueuedI2Ctest1: vSemaphoreCreateBinary failed! \n\r");
 		while(1);
 	}
-	unsigned char myChar[1] = {'7'};
+
 	i2cTx.callback = I2Ccallback;
-	i2cTx.direction = write_i2cDir;
+	i2cTx.direction = writeRead_i2cDir;
 	i2cTx.readData = readData;
-	i2cTx.readSize = 1;
-	i2cTx.writeData = myChar;
-	i2cTx.writeSize = 1;
+	i2cTx.readSize = 2;
+	i2cTx.writeData = writeData;
+	i2cTx.writeSize = 3;
 	i2cTx.writeReadDelay = 0;
 	i2cTx.slaveAddress = 0x41;
 	i2cTx.result = &txResult;
 	i2cTx.semaphore = txSemaphore;
 
-	//while(1) {
-		TRACE_DEBUG(" taskQueuedI2Ctest1 \n\r");
+	while(1) {
+		//TRACE_DEBUG(" taskQueuedI2Ctest1 \n\r");
 
 		retValInt = doBlockingI2CTransfer(txSemaphore, &i2cTx);
 		if(retValInt != 0) {
@@ -134,17 +133,17 @@ void taskQueuedI2Ctest1() {
 			}
 		}
 
-		TRACE_DEBUG(" taskQueuedI2Ctest1: received back: \n\r");
-		TRACE_DEBUG("(%02X) ", readData[0]);
+		//TRACE_DEBUG(" taskQueuedI2Ctest1: received back: \n\r");
+		//TRACE_DEBUG("0x%X ", readData[0]);
 		for(i=1; i<i2cTx.readSize; i++) {
-			TRACE_DEBUG("%02X ", readData[i]);
-			//writeData[i]++;
+			//TRACE_DEBUG("0x%X ", readData[i]);
+			writeData[i]++;
 		}
-		//writeData[i]++;
+		writeData[i]++;
 
-		TRACE_DEBUG(" \n\r\n\r");
+		//TRACE_DEBUG(" \n\r\n\r");
 		vTaskDelay(5);
-	//}
+	}
 }
 
 void taskQueuedI2Ctest2() {
@@ -212,21 +211,20 @@ void taskQueuedI2Ctest3() {
 	unsigned char readData[64] = {0}, writeData[64] = {0};
 	TRACE_DEBUG("\n\r taskQueuedI2Ctest3: Starting. \n\r");
 
-	writeData[0] = 0x33;
+	writeData[0] = 0xEF;
 	for(i=1; i<sizeof(writeData); i++) {
 		writeData[i] = (unsigned char)(i*2);
 	}
 
-	unsigned char writeOut[13] = "Hello World!\0";
 	i2cTx.readData = readData;
-	i2cTx.readSize = 13;
-	i2cTx.writeData = writeOut;
-	i2cTx.writeSize = 13;
+	i2cTx.readSize = 4;
+	i2cTx.writeData = writeData;
+	i2cTx.writeSize = 5;
 	i2cTx.writeReadDelay = 2;
 	i2cTx.slaveAddress = 0x41;
 
-
-		TRACE_DEBUG(" taskQueuedI2Ctest3 \n\r");
+	while(1) {
+		//TRACE_DEBUG(" taskQueuedI2Ctest3 \n\r");
 
 		retValInt = I2C_writeRead(&i2cTx); // Use I2C_writeRead instead of our own implementation.
 		if(retValInt != 0) {
@@ -234,35 +232,31 @@ void taskQueuedI2Ctest3() {
 			while(1);
 		}
 
-		TRACE_DEBUG(" taskQueuedI2Ctest3: received back: \n\r");
-		printf("%c", readData[0]);
+		//TRACE_DEBUG(" taskQueuedI2Ctest3: received back: \n\r");
+		//TRACE_DEBUG("0x%X ", readData[0]);
 		for(i=1; i<i2cTx.readSize; i++) {
-			printf("%c", readData[i]);
+			//TRACE_DEBUG("0x%X ", readData[i]);
+			writeData[i]++;
 		}
-		printf("\n");
-		printf("%02X", readData[0]);
-		for(i=1; i<i2cTx.readSize; i++) {
-			printf("%02X", readData[i]);
-		}
-		printf("\n\r");
-		TRACE_DEBUG(" \n\r\n\r");
-		//vTaskDelay(5);
+		writeData[i]++;
 
+		//TRACE_DEBUG(" \n\r\n\r");
+		vTaskDelay(5);
+	}
 }
 
 Boolean I2Ctest() {
 	int retValInt = 0;
-	//xTaskHandle taskQueuedI2Ctest3Handle;//, taskQueuedI2Ctest2Handle, taskQueuedI2Ctest3Handle;
+	xTaskHandle taskQueuedI2Ctest1Handle, taskQueuedI2Ctest2Handle, taskQueuedI2Ctest3Handle;
 
-	//Our I2c can do 400 khz max. FAST MODE
-	retValInt = I2C_start(400000, 5000);//2nd param can be 'portMAX_DELAY' for debug step through to prevent timeout.
+	retValInt = I2C_start(66000, 10);
 	if(retValInt != 0) {
 		TRACE_FATAL("\n\r I2Ctest: I2C_start returned: %d! \n\r", retValInt);
 	}
 
-	//xTaskGenericCreate(taskQueuedI2Ctest1, (const signed char*)"taskQueuedI2Ctest1", 1024, NULL, configMAX_PRIORITIES-2, &taskQueuedI2Ctest1Handle, NULL, NULL);
-	//xTaskGenericCreate(taskQueuedI2Ctest2, (const signed char*)"taskQueuedI2Ctest2", 1024, NULL, 2, &taskQueuedI2Ctest2Handle, NULL, NULL);
-	//xTaskGenericCreate(taskQueuedI2Ctest3, (const signed char*)"taskQueuedI2Ctest3", 1024, NULL, 2, &taskQueuedI2Ctest3Handle, NULL, NULL);
-	taskQueuedI2Ctest3();
-	return TRUE;
+	xTaskGenericCreate(taskQueuedI2Ctest1, (const signed char*)"taskQueuedI2Ctest1", 1024, NULL, 2, &taskQueuedI2Ctest1Handle, NULL, NULL);
+	xTaskGenericCreate(taskQueuedI2Ctest2, (const signed char*)"taskQueuedI2Ctest2", 1024, NULL, 2, &taskQueuedI2Ctest2Handle, NULL, NULL);
+	xTaskGenericCreate(taskQueuedI2Ctest3, (const signed char*)"taskQueuedI2Ctest3", 1024, NULL, 2, &taskQueuedI2Ctest3Handle, NULL, NULL);
+
+	return FALSE;
 }
