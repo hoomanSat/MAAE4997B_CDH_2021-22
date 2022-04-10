@@ -1,7 +1,8 @@
 /*
  * main.c
-<<<<<<< HEAD
+
  *      Author: Akhil
+ *      Alteration by C&DH Team
  */
 
 #include "Demo/demo_sd.h"
@@ -9,6 +10,7 @@
 #include "Tests/FreeRTOSTest.h"
 #include "Tests/cspTest.h"
 #include "Tests/I2CmultiMasterTest.h"
+#include "Tests/TaskSequenceTimeTest.h"
 
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>
@@ -98,8 +100,9 @@ Boolean selectAndExecuteTest() {
 	printf("\t 24) RTC Test \n\r");
 	printf("\t 25) FRAM Test \n\r");
 	printf("\t 26) EPSCmd \n\r");
+	printf("\t 27) Task Sequence Time Test \n\r");
 
-	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 25) == 0); //Update the range if you add functions
+	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 27) == 0); //Update the range if you add functions
 
 	//Verify you are importing the header file for any new tests you add that are in a new file
 	switch(selection) {
@@ -181,6 +184,9 @@ Boolean selectAndExecuteTest() {
 		break;
 	case 26:
 		offerMoreTests = EPSTelemetryTest();
+		break;
+	case 27:
+		offerMoreTests = TaskSequenceTimeTest();
 		break;
 	default:
 		break;
