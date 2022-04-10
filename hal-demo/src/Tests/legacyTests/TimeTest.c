@@ -5,8 +5,6 @@
  *      Author: malv
  */
 
-#include "Tests/TimeTest.h"
-
 #include <at91/commons.h>
 #include <at91/utility/trace.h>
 
@@ -25,6 +23,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <Tests/legacyTests/TimeTest.h>
 
 // Initialization
 

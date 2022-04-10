@@ -5,8 +5,6 @@
  *      Author: pbot
  */
 
-#include "SDCardTest.h"
-
 #include <hcc/api_hcc_mem.h>
 #include <hcc/api_fat.h>
 #include <hcc/api_fat_test.h>
@@ -15,6 +13,7 @@
 #include <hal/Utility/util.h>
 
 #include <stdio.h>
+#include <Tests/legacyTests/SDCardTest.h>
 
 Boolean SDCardTest( void )
 {

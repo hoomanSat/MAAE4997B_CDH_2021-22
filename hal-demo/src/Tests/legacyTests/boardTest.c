@@ -5,9 +5,6 @@
  *      Author: apip
  */
 
-#include "ADCtest.h"
-#include "SDCardTest.h"
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -21,6 +18,8 @@
 #include <hal/supervisor.h>
 
 #include <string.h>
+#include <Tests/legacyTests/ADCtest.h>
+#include <Tests/legacyTests/SDCardTest.h>
 
 #define FRAM_TEST_TRANSACTION_SIZE	1024
 static unsigned char FRAMwriteVerifyData[FRAM_TEST_TRANSACTION_SIZE] = {0};

@@ -1,10 +1,9 @@
-#include "checksumTest.h"
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <hal/checksum.h>
 #include <stdio.h>
 #include <string.h>
+#include <Tests/legacyTests/checksumTest.h>
 
 // Test string
 static const char* testdata = "The quick brown fox jumps over the lazy dog";

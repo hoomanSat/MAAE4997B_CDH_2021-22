@@ -5,9 +5,6 @@
  *      Author: Akhil Piplani
  */
 
-#include "Tests/SDCardTest.h"
-#include "Tests/PWMtest.h"
-
 #include <at91/commons.h>
 #include <at91/utility/trace.h>
 
@@ -29,6 +26,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <Tests/legacyTests/PWMtest.h>
+#include <Tests/legacyTests/SDCardTest.h>
 
 #define FRAM_TEST_TRANSACTION_SIZE	1024
 #define FRAM_TEST_ADDRESS			0x10000

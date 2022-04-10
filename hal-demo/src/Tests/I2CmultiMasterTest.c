@@ -17,27 +17,51 @@ static int packetReady = 1; //if 1, packet is zeroed and ready to receive new da
 static unsigned char I2CInput[I2C_SLAVE_PACKET_SIZE] = {0};
 static int bytesRead = 0; //tracks bytes read into a packet and can be error codes
 
+/*
+ * The way the slave driver works is that is is initialized and started with the commandList table below. This causes the driver to automatically scan each first byte and
+ * treat it as a command code, this governs behavior, how many bytes it reads after that command byte. We need to use the table in a way that lets us capture all
+ * possible incoming packets since the handling of the packet is for CSP to do.
+ *
+ */
 //HAL SLAVE Testing Code with a 32 byte long packet buffer limit
+//The Idea is we want to accept any command and read up to a certain length, currently +31 which equals 32 bytes. The arduinos we use for test
+//are limited in I2C packet size so this is why the max is 32.
+/*
+ * To 'hack' this driver into being compatible with CSP it needs a command list that accepts every possible first byte that could arrive,
+ * CSP encodes its first 2 data bytes as 0x0000 to 0x00FF to denote data length. If we cap it at 256 length (likely we will choose a little lower)
+ * Then the first byte shall always be 0x00, and we shall always seek the next 255 bytes.
+ * and then reads the next PACKET_SIZE-1 bytes. It shall never need to respond as we anticipate CSP handles this by switching to master mode if it needs
+ * to send a response. assuming you figure out how to integrate these old drivers with CSP.
+ */
 static I2CslaveCommandList MMCommandList[] = {	{.command = 0x54, .commandParameterSize = 31, .hasResponse = FALSE},
 												{.command = 0xAB, .commandParameterSize = 31, .hasResponse = FALSE},
 												{.command = 0xAC, .commandParameterSize = 31, .hasResponse = FALSE},
 												{.command = 0xAD, .commandParameterSize = 31, .hasResponse = FALSE},
-											};//Partial list, will contain all possible 0xAA to 0xFF
-static unsigned char I2CMMcommandBuffer[32] = {0};
+												{.command = 0x00, .commandParameterSize = 255, .hasResponse = FALSE},
+											};//Last line is an example of a line that should capture any CSP packet capped at 256 byte length, no other lines required - untested
 
-#define TEST_SLAVE_ADR 0x5D
 
+static unsigned char I2CMMcommandBuffer[32] = {0}; //Used to capture the incoming data packet in a data structure
+
+#define TEST_SLAVE_ADR 0x5D //our slave address
+
+//Some mode flagging constants
 #define MASTER_MODE 1
 #define SLAVE_MODE 0
 
+//Flag variables used to keep track of the mode we are in and changing to
 unsigned int I2CModeCurrent = SLAVE_MODE; //0 Slave, 1 Master
 unsigned int I2CModeRequested = SLAVE_MODE; //0 Slave, 1 Master
 
 xTaskHandle halSlaveHandle;
 
-///
-///
 
+/*
+ * Copied over from I2CslaveTest and adapted for use here, used for acting as the slave, we want to read the incoming data
+ * Imagine a message from earth has been relayed via the AX100, it is in the CSP format so we need to capture it and provide it to
+ * CSP layer.
+ * BLOCKING
+ */
 void halSlaveTest() {
 	int bytesRead, bytesWritten, bytesToWrite;
 	unsigned int i, commandListSize = sizeof(MMCommandList) / sizeof(MMCommandList[0]);
@@ -98,61 +122,6 @@ void halSlaveTest() {
 
 }
 
-// A task to read commands from the driver and responds back to them if the command is supposed to carry a response.
-void readNextByte() {
-	//TRACE_DEBUG_WP("readNextByte runs \n\r");
-	packetReady = 0;
-
-	AT91_REG rhr = AT91C_BASE_TWI->TWI_RHR; //1 byte of incoming data
-	if(I2CInputIndex < I2C_SLAVE_PACKET_SIZE){
-		I2CInput[I2CInputIndex] = rhr; //record the next byte
-		bytesRead += 1; //reset when TXCOMP trips to 1
-		I2CInputIndex += 1; //reset when TXCOMP trips to 1
-	}else{
-		TRACE_ERROR("I2CInput OVERFLOW Detected \n\r");
-		bytesRead = -1;
-	}
-}
-
-void readPacket(){
-	TRACE_DEBUG_WP(" Reading Packet of size %d: \n\r", bytesRead);
-	if(bytesRead == 0){
-		TRACE_DEBUG_WP("No Data! \n\r", bytesRead);
-		return;
-	}
-	if(bytesRead < 0) {
-		// An error occurred!
-		TRACE_ERROR_WP("An error occurred reading the packet, bytesRead code = %d. \n\r Dumping entire packet... \n\r", bytesRead);
-		bytesRead = I2C_SLAVE_PACKET_SIZE; //Print the Packet to max limit
-	}
-
-	TRACE_DEBUG_WP("I2C Slave_read : bytesRead %d \n\r", bytesRead);
-	TRACE_DEBUG_WP("Message from AX100 (DumpArray Bytes): \n\r");
-	UTIL_DbguDumpArrayBytes(I2CInput, bytesRead);
-
-	TRACE_DEBUG_WP("Character Output: %c", I2CInput[0]);
-	for(int i = 1; i < bytesRead; i++) {
-		TRACE_DEBUG_WP("%c", I2CInput[i]);
-	}
-	TRACE_DEBUG_WP("\n\r");
-	TRACE_DEBUG_WP("Hex Output: %02X", I2CInput[0]);
-	for(int i = 1; i < bytesRead; i++) {
-		TRACE_DEBUG_WP(" %02X", I2CInput[i]);
-	}
-	TRACE_DEBUG_WP("\n\r READ PACKET ENDS \n\r");
-	TRACE_DEBUG_WP(" \n\r\n\r");
-}
-
-void resetPacket(){
-	if(packetReady){
-		return;
-	}
-	bytesRead = 0;
-	I2CInputIndex = 0; //Reset the counter for next incoming I2CInput packet array
-	memset(I2CInput, 0, sizeof(I2C_SLAVE_PACKET_SIZE)); //ZERO THE PACKET BUFFER
-	packetReady = 1;
-}
-
 void initHalSlave(){
 
 	I2C_stop();
@@ -164,60 +133,9 @@ void initHalSlave(){
 	xTaskGenericCreate(halSlaveTest, (const signed char*)"halSlaveTest", 1024, NULL, configMAX_PRIORITIES-2, &halSlaveHandle, NULL, NULL);
 }
 
-/*
- * Basic use, no tasks used or interrupt capabilities, multimasterDirector is considered the task.
- */
-void initSlave(){
-	TRACE_DEBUG_WP("Init Slave Mode \n\r");
 
-	//Halt Master Mode via HAL Driver
-	I2C_stop();
-
-	//Program Slave Address into SMR.SADR register at bits [22,16]
-	//Must be done prior to activation of slave mode or write is prohibited
-	AT91_REG smr = AT91C_BASE_TWI->TWI_SMR;
-	smr &= ~(AT91C_TWI_SADR); //CLEAR SADR
-	smr |= TEST_SLAVE_ADR << 16; //Set SADR to the slave address value
-	printf("SMR: %X \n", smr);
-
-	//PIO CONFIGURE - Activate the TWI lines and set to open-drain, pull-UP Enable
-	printf("PIO STATUS a TWD: %d \n\r", (AT91C_BASE_PIOA->PIO_PSR & AT91C_PA23_TWD) >> 23);
-	printf("PIO STATUS a TWCK: %d \n\r", (AT91C_BASE_PIOA->PIO_PSR & AT91C_PA24_TWCK) >> 24);
-	printf("PIO STATUS a TWD PU: %d \n\r", (AT91C_BASE_PIOA->PIO_PPUSR & AT91C_PA23_TWD) >> 23);
-	printf("PIO STATUS a TWCK PU: %d \n\r", (AT91C_BASE_PIOA->PIO_PPUSR & AT91C_PA24_TWCK) >> 24);
-	AT91C_BASE_PIOA->PIO_PER |= (AT91C_PA23_TWD | AT91C_PA24_TWCK);
-	//AT91C_BASE_PIOA->PIO_PPUER |= (AT91C_PA23_TWD | AT91C_PA24_TWCK);
-	printf("PIO STATUS TWD: %d \n\r", (AT91C_BASE_PIOA->PIO_PSR & AT91C_PA23_TWD) >> 23);
-	printf("PIO STATUS TWCK: %d \n\r", (AT91C_BASE_PIOA->PIO_PSR & AT91C_PA24_TWCK) >> 24);
-	printf("PIO STATUS TWD PU: %d \n\r", (AT91C_BASE_PIOA->PIO_PPUSR & AT91C_PA23_TWD) >> 23);
-	printf("PIO STATUS TWCK PU: %d \n\r", (AT91C_BASE_PIOA->PIO_PPUSR & AT91C_PA24_TWCK) >> 24);
-
-	//Verify PMC
-	printf("PMC STATUS a TWD: %d \n\r", (AT91C_BASE_PMC->PMC_PCSR & AT91C_PA23_TWD) >> 23);
-	printf("PMC STATUS a TWCK: %d \n\r", (AT91C_BASE_PMC->PMC_PCSR & AT91C_PA24_TWCK) >> 24);
-	AT91C_BASE_PMC->PMC_PCDR |= (AT91C_PA23_TWD | AT91C_PA24_TWCK);
-	printf("PMC STATUS TWD: %d \n\r", (AT91C_BASE_PMC->PMC_PCSR & AT91C_PA23_TWD) >> 23);
-	printf("PMC STATUS TWCK: %d \n\r", (AT91C_BASE_PMC->PMC_PCSR & AT91C_PA24_TWCK) >> 24);
-
-	//Deactivate mastermode MSDIS = 1 (redundant, since HAL driver should do this)
-	//Enable SVEN = 1 to turn on slave mode
-	//AT91_REG cr = AT91C_BASE_TWI;
-	AT91C_BASE_TWI->TWI_CR |= (AT91C_TWI_MSDIS | AT91C_TWI_SVEN);
-
-	//Set global flag
-	I2CModeCurrent = SLAVE_MODE;
-	printf("STATUS: %X \n", AT91C_BASE_TWI->TWI_SR);
-	taskYIELD();
-}
-
-void initMaster(){
+void initHalMaster(){
 	TRACE_DEBUG_WP("Init Master Mode \n\r");
-
-	//I2Cslave_stop();
-	//AT91_REG cr = AT91C_BASE_TWI->TWI_CR;
-	//cr |= AT91C_TWI_SVDIS;	//disable slave mode bit
-
-	//HAL Driver Use - stop slave
 
 	I2Cslave_stop();
 	vTaskDelete(halSlaveHandle);
@@ -230,7 +148,7 @@ void initMaster(){
 }
 
 /*!
- * Blocking Call
+ * Blocking Call - we use this to do a master mode read-write to a slave for testing
  */
 int mastermodeWriteReadProcess() {
 	int retValInt = 0;
@@ -253,8 +171,8 @@ int mastermodeWriteReadProcess() {
 	i2cTx.slaveAddress = 0x42;// <--------------SLAVE TARGET
 
 
-		//TRACE_DEBUG_WP("To 41 Sending I2CRequest to Slave via writeRead() \n\r");
-		return 7; //TODO DEBUG ESCAPE OUT WHEN NOT USING SLAVE ARDUINO
+		TRACE_DEBUG_WP("To 42 Sending I2CRequest to Slave via writeRead() \n\r");
+
 		retValInt = I2C_writeRead(&i2cTx); // Use I2C_writeRead instead of our own implementation.
 		if(retValInt != 0) {
 			TRACE_WARNING_WP("\n\r I2C_writeRead returned with code: %d! \n\r", retValInt);
@@ -276,6 +194,13 @@ int mastermodeWriteReadProcess() {
 		return retValInt;
 }
 
+/*
+ * Was supposed to implement the Multi-master logical flow from the SAM9G20 manual. unfortunately this can't work with HAL drivers.
+ * The Hal drivers use the status bits we need to read and so we can't reliably also use them to control behavior and switch modes.
+ * This logical flow is only useful if we make our own drivers.
+ *
+ * Presented below is the very simplified version that uses HAL drivers, this should demonstrate mode switching
+ */
 void multimasterDirector(){
 
 	while(1){
@@ -285,113 +210,21 @@ void multimasterDirector(){
 			if(I2CModeRequested == SLAVE_MODE){
 				//TRACE_DEBUG_WP("Mode Switch to slave \n\r")
 				initHalSlave();
-				//initSlave();
 			}else if (I2CModeRequested == MASTER_MODE){
 				//TRACE_DEBUG_WP("Mode Switch to master \n\r")
-				initMaster();
+				initHalMaster();
 			}else{
 				TRACE_ERROR("I2CModeRequested was set to unexpected value \n\r");
 				exit(1);
 			}
-			taskYIELD();//May not be required, but letting system tasks go just in-case required for the inits to take?, try without?
+			taskYIELD();//May not be required, but letting background system tasks go just in-case required for the inits to take hold?, try without?
 		}
 
-		//Follow Flowchart - REFERENCE SAM8g20.pdf (pg. 423)
 		if (I2CModeCurrent == SLAVE_MODE){
-
-			while(1){ //THE SLAVE FLOW LOOP
-				//READ STATUS REGISTER
-				status_register = AT91C_BASE_TWI->TWI_SR;
-
-				break; // TODO LOOP BYPASS HAL DRIVER TESTING
-
-				//CHECK SVACC
-				if (status_register & AT91C_TWI_SVACC){
-					TRACE_DEBUG_WP("STATUS: %X \n\r", status_register);
-					if(bytesRead == 0){
-						TRACE_DEBUG_WP("SVACC Received: Status Register: %X \n\r", status_register);
-					}
-					//Check GACC
-					if (status_register & AT91C_TWI_GACC){
-						TRACE_ERROR("GENERAL CALL NOT SUPPORTED \n\r");
-						exit(1);
-					}else{//GACC == 0
-						if ((status_register & AT91C_TWI_SVREAD) == 0){
-							if ((status_register & AT91C_TWI_RXRDY) == 0){
-								//READ TWI_RHR byte by byte
-								//readNextByte(); //Loop until NACK from master and TXCOMP goes to 1
-								halSlaveTest();
-							}else{
-								//loop out
-							}
-						}else{
-							//loop out
-						}
-					}
-				}else{//SVACC == 0, or NO on flow
-					//CHECK EOSACC - End of Slave Access bit
-					//TRACE_DEBUG_WP("EOSACC %X \n\r", (status_register & AT91C_TWI_EOSACC));
-					if(status_register & AT91C_TWI_EOSACC){
-						//CHECK TXCOMP - verify transmission is complete before allow a mode switch
-						//TRACE_DEBUG_WP("TXCOMP %X \n\r", (status_register & AT91C_TWI_TXCOMP));
-						if(status_register & AT91C_TWI_TXCOMP){
-							readPacket();
-							resetPacket();
-
-							//Another task sets up the I2CModeRequested to = MASTER_MODE to indicate a master communication is requested - TODO Data is moved via task queue or global struct?
-							break; //Return to outer loop and check for mode switch - we continuously loop from outer to here if nothing to do //EXIT SLAVE LOOP
-						}
-						//continue
-					}
-					//continue
-				}
-
-				//GOTO READ STATUS REGISTER - SLAVE LOOP ENDS
-				taskYIELD();
-				//csp_sleep_ms(1);
-			}//SLAVE LOOP
+			halSlaveTest();
 		}else if (I2CModeCurrent == MASTER_MODE){
-			while(1){//THE MASTER MODE FLOW LOOP - loop not required as we are using the HAL driver
-				status_register = AT91C_BASE_TWI->TWI_SR;
-				//CHECK ARBLST
-				if (status_register & AT91C_TWI_ARBLST_MULTI_MASTER){
-					TRACE_DEBUG_WP("ARBLST Seen: Status Register: %X \n\r", status_register);
-					I2CModeRequested = SLAVE_MODE; //GO DIRECTLY TO SLAVE MODE - Arbitration was lost, a MASTER is attempting to call, need to listen!
-					break; //Return to outer loop and check for mode switch //EXIT MASTER LOOP
-				}else{//ARBLST == 0, or NO in the flow
-					//DO MASTER MODE TEST-READWRITE
-					int rtnVal = mastermodeWriteReadProcess();
-					if(rtnVal){
-						//TODO Blocking Call - MAY NOT CONSIDER THE ARBITRATION LOST BIT! Master driver may be required to consider the arbitration bit
-						//TODO Currently Anticipate a code 7 if arbitration is lost during a HAL Master command, this is ok since we will go to slave mode regardless
-
-						//TRACE_ERROR("Master Read-Write returns code: %d \n\r", rtnVal);
-
-						//Check the I2C Transfer Status
-						switch (I2C_getCurrentTransferStatus()) {
-							case writeError_i2c:
-								TRACE_ERROR("I2C Status shows: writeError_i2c \n\r");
-								break;
-							case readError_i2c:
-								TRACE_ERROR("I2C Status shows: readError_i2c \n\r");
-								break;
-							case timeoutError_i2c:
-								TRACE_ERROR("I2C Status shows: timeoutError_i2c \n\r");
-								break;
-							case error_i2c:
-								//TODO off to prevent spam
-								//TRACE_ERROR("I2C Status shows: General Error 7! \n\r");
-								break;
-							default:
-								//nominal
-								break;
-						}
-					}
-					I2CModeRequested = SLAVE_MODE;
-					break; //EXIT MASTER LOOP
-				}
-				//CANT REACH THIS AREA
-			}//MASTER LOOP
+			mastermodeWriteReadProcess();
+			I2CModeRequested = SLAVE_MODE; //Switch back to default slave mode once master message complete
 		}else{
 			TRACE_ERROR("I2CModeCurrent was set to unexpected value \n\r");
 			exit(1);
@@ -403,23 +236,29 @@ void multimasterDirector(){
 	}//Task Loop Top
 }
 
+/*
+ * Currently randomly triggers a mode switch to MASTER MODE every half second we check with a 25% chance to switch
+ */
 void localSchedule(){
-	//Design this task to change mode to MASTER (I2CModeRequested == MASTER_MODE) when it wants to talk to the slave
-	//How it passes data is a Dante problem
 	while(1){
-		//TODO
 		if((rand() % 100) < 25){
 			//TRACE_DEBUG_WP("Requesting Master-Mode \n\r");
 			I2CModeRequested = MASTER_MODE;
-			csp_sleep_ms(2000);
+			csp_sleep_ms(2000); //2 second break before random chance kicks back in
 		}else{
 			//do nothing
 		}
 		csp_sleep_ms(500); //every half second, 25% to do a Master Task
 	}
-
 }
 
+/*
+ * This Test may not work out of the box, I cleaned it up before adding to the repo, it may be broken. It should demo
+ * Mode switching. We stay in slave mode until a separate task wishes to go to master mode.
+ * localSchedule is the stand in for some other task
+ * multimasterDirector acts as the mode manager and inits the appropriate driver.
+ *
+ */
 Boolean I2CmultiMasterTest() {
 	int retValInt = 0;
 	xTaskHandle multimasterDirectorHandle;
@@ -437,5 +276,5 @@ Boolean I2CmultiMasterTest() {
 	xTaskGenericCreate(localSchedule, (const signed char*)"localSchedule", 1024, NULL, configMAX_PRIORITIES-2, &localScheduleHandle, NULL, NULL);
 
 	//Terminate (fall out) on the mainmenu task, only the director remains and the poll scheduler
-	return FALSE; //No other commands may execute after this test, reboot required.
+	return FALSE; //No other commands may execute after this test, restart required.
 }
