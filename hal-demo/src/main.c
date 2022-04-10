@@ -1,5 +1,6 @@
 /*
  * main.c
+<<<<<<< HEAD
  *      Author: Akhil
  */
 
@@ -90,8 +91,15 @@ Boolean selectAndExecuteTest() {
 	printf("\t 17) FreeRTOS Test \n\r");
 	printf("\t 18) CSP-AX100 Test \n\r");
 	printf("\t 19) MultiMaster Test \n\r");
+	printf("\t 20) SPI Test \n\r");
+	printf("\t 21) UART Read \n\r");
+	printf("\t 22) UART Write \n\r");
+	printf("\t 23) UART Read And Write \n\r");
+	printf("\t 24) RTC Test \n\r");
+	printf("\t 25) FRAM Test \n\r");
+	printf("\t 26) EPSCmd \n\r");
 
-	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 19) == 0); //Update the range if you add functions
+	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 25) == 0); //Update the range if you add functions
 
 	//Verify you are importing the header file for any new tests you add that are in a new file
 	switch(selection) {
@@ -152,6 +160,27 @@ Boolean selectAndExecuteTest() {
 		break;
 	case 19:
 		offerMoreTests = I2CmultiMasterTest();
+		break;
+	case 20:
+		offerMoreTests = SPITest();
+		break;
+	case 21:
+		offerMoreTests = UARTReadTest();
+		break;
+	case 22:
+		offerMoreTests = UARTWriteTest();
+		break;
+	case 23:
+		offerMoreTests = UARTReadWriteTest();
+		break;
+	case 24:
+		offerMoreTests = RTCTest();
+		break;
+	case 25:
+		offerMoreTests = FRAMTest();
+		break;
+	case 26:
+		offerMoreTests = EPSTelemetryTest();
 		break;
 	default:
 		break;
