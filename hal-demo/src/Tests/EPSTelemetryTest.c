@@ -4,6 +4,7 @@
  *  Created on: 2022-02-07
  *  Updated on: 2022-04-05
  *      Author: Dante Corsi
+ *      Modified by: Sam Dunthorne
  */
 
 #include <Tests/EPSTelemetryTest.h>
@@ -12,72 +13,78 @@
 #define READ_SIZE 2 // EPS Telemetry return size
 
 void taskEPS_I2C_Test() {
+
+	Boolean continueTest = TRUE;
+	unsigned int choice;
+	unsigned int selection = 0;
+
+
+	while (continueTest){
+
 	int retValInt = 0;
-	unsigned char COMMAND[3] = {0x10,0xE2,0x80}; // command byte
+	 // command byte
+	unsigned char COMMAND[3] = {0x10,0xE2,0x80};
     unsigned char DATA1 = 0x00; // data byte 2
 	//unsigned char DATA2 = 0x00; // data byte
 	unsigned char EPS_TELEMETRY[2] = {0}; // returned telemetry from EPS
+	unsigned int conversionValue = 0.008993; // This value is specifically for test 1, in the future this value can be variable and use a lookup table for each test
 
 	I2Ctransfer i2cTx;
 	i2cTx.readData = EPS_TELEMETRY;
 	i2cTx.readSize = 2;
 	i2cTx.slaveAddress = EPS_ADDRESS;
-	i2cTx.writeData = COMMAND;
 	i2cTx.writeSize = 3;
 	i2cTx.writeReadDelay = 5;
+
+	printf( "\n\r Select an EPS test to perform: \n\r");
+	printf("\t 1) Check Battery Output Voltage \n\r");
+	printf("\t 2) Check EPS Motherboard Temperature \n\r");
+
+
+	while(UTIL_DbguGetIntegerMinMax(&selection, 1, 15) == 0);
+	switch(selection) {
+		case 1:
+			COMMAND[3] = (0x10,0xE2,0x80);
+			i2cTx.writeData = COMMAND;
+			break;
+		case 2:
+			COMMAND[3] = (0x10,0xE3,0x08);
+			i2cTx.writeData = COMMAND;
+			break;
+
+	}
 
 	retValInt = I2C_writeRead(&i2cTx);
 	if (retValInt != 0) {
 		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_write_read #1 returned: %d \n\r", retValInt); // returns the error code for debugging
 	}
-	else {
-		printf("\n\r taskEPS_I2C_Test: I2C_write_read #1 successful!"); // print this on success
-	}
 
-	printf("\n\r EPS Telemetry Read: \n\r");
+
 	UTIL_DbguDumpArrayBytes(EPS_TELEMETRY, 2);
 
-	double x = (double) ((EPS_TELEMETRY[1] << 8) & EPS_TELEMETRY[0]);
-	printf("\n\r Telemetry Data: %f \n\r",x*0.008993);
+	char hexA = EPS_TELEMETRY[0];
+	char hexB = EPS_TELEMETRY[1];
 
-	return;
+	double x1 = (hexA << 8);
+	double x2 = hexB;
 
-	// all this is ignored due to return above
-    // send commands
-	retValInt = I2C_write(EPS_ADDRESS, &COMMAND, 1); // write the first i2c command
-	if (retValInt != 0) {
-		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_write #1 returned: %d \n\r", retValInt); // returns the error code for debugging
+	double sum = x1 + x2;
+	float convert = sum * conversionValue;
+
+	printf("Read Decimal: %f \n\r", sum);
+	printf("Converted Value: %f Volts \n\r", convert);
+
+
+	if(continueTest != FALSE) {
+	printf("Continue EPS Test? (1=Yes, 0=No): \n\r");
+	while(UTIL_DbguGetIntegerMinMax(&choice, 0, 1) == 0);
+	if(choice == 0) {
+		continueTest = FALSE;
+		}
 	}
 	else {
-		printf("\n\r taskEPS_I2C_Test: I2C_write #1 successful!"); // print this on success
-	}
-
-	retValInt = I2C_write(EPS_ADDRESS, &DATA1, 1); // write the second i2c command
-	if (retValInt != 0) {
-		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_write #2 returned: %d \n\r", retValInt); // returns the error code for debugging
-	}
-	else {
-		printf("\n\r taskEPS_I2C_Test: I2C_write #2 successful!"); // print this on success
-	}
-
-/*	retValInt = I2C_write(EPS_ADDRESS, &DATA2, 1); // write the second i2c command
-	if (retValInt != 0) {
-		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_write #3 returned: %d \n\r", retValInt); // returns the error code for debugging
-	}
-	else {
-		printf("\n\r taskEPS_I2C_Test: I2C_write #3 successful!"); // print this on success
-	}*/
-
-	// wait 1000 ms
-	vTaskDelay(1000);
-
-	// read from EPS
-	retValInt = I2C_read(EPS_ADDRESS, &EPS_TELEMETRY, READ_SIZE); // write the first i2c command
-	if (retValInt != 0) {
-		TRACE_FATAL("\n\r taskEPS_I2C_Test: I2C_read #1 returned: %d \n\r", retValInt); // returns the error code for debugging
-	}
-	else {
-		printf("\n\r taskEPS_I2C_Test: I2C_read #1 successful!"); // print this on success
+		break;
+		}
 	}
 
 }

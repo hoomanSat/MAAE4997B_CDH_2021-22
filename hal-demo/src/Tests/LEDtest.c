@@ -20,7 +20,7 @@
 #include <string.h>
 
 void taskLED2() {
-	while(1) {
+	{
 		// toggle led-2 and delay
 		TRACE_DEBUG(" taskLED2 \n\r");
 		LED_toggle(led_2);
@@ -29,7 +29,7 @@ void taskLED2() {
 }
 
 void taskLED3() {
-	while(1) {
+	{
 		// toggle led-3 and delay
 		TRACE_DEBUG(" taskLED3 \n\r");
 		LED_toggle(led_3);
@@ -48,7 +48,7 @@ Boolean LEDtest() {
 	xTaskGenericCreate(taskLED2, (const signed char*)"taskLED2", 1024, NULL, 2, &taskLED2handle, NULL, NULL);
 	xTaskGenericCreate(taskLED3, (const signed char*)"taskLED3", 1024, NULL, 2, &taskLED3handle, NULL, NULL);
 
-	vTaskDelay(10000);
+	vTaskDelay(500);
 
 	vTaskDelete(taskLED2handle);
 	vTaskDelete(taskLED3handle);
