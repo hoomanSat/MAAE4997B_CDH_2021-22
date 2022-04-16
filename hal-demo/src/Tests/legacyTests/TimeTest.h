@@ -10,6 +10,6 @@
 
 #include <hal/boolean.h>
 
-Boolean TimeTest();
+Boolean timeTest();
 
 #endif /* TIMETEST_H_ */

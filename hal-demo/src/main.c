@@ -7,10 +7,33 @@
 
 #include "Demo/demo_sd.h"
 
+#include "Tests/legacyTests/ADCtest.h"
+#include "Tests/legacyTests/boardTest.h"
+#include "Tests/legacyTests/checksumTest.h"
+#include "Tests/legacyTests/FloatingPointTest.h"
+#include "Tests/legacyTests/I2CslaveTest.h"
+#include "Tests/legacyTests/I2Ctest.h"
+#include "Tests/legacyTests/LEDtest.h"
+#include "Tests/legacyTests/PinTest.h"
+#include "Tests/legacyTests/PWMtest.h"
+#include "Tests/legacyTests/SDCardTest.h"
+#include "Tests/legacyTests/SPI_FRAM_RTCtest.h"
+#include "Tests/legacyTests/SupervisorTest.h"
+#include "Tests/legacyTests/TimeTest.h"
+#include "Tests/legacyTests/UARTtest.h"
+#include "Tests/legacyTests/USBdeviceTest.h"
+
 #include "Tests/FreeRTOSTest.h"
 #include "Tests/cspTest.h"
 #include "Tests/I2CmultiMasterTest.h"
 #include "Tests/TaskSequenceTimeTest.h"
+#include "Tests/FRAMTest.h"
+#include "Tests/SPITest.h"
+#include "Tests/UARTReadTest.h"
+#include "Tests/UARTReadWriteTest.h"
+#include "Tests/UARTWriteTest.h"
+#include "Tests/RTCTest.h"
+#include "Tests/EPSTelemetryTest.h"
 
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>
@@ -36,22 +59,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <Tests/legacyTests/ADCtest.h>
-#include <Tests/legacyTests/boardTest.h>
-#include <Tests/legacyTests/checksumTest.h>
-#include <Tests/legacyTests/FloatingPointTest.h>
-#include <Tests/legacyTests/I2CslaveTest.h>
-#include <Tests/legacyTests/I2Ctest.h>
-#include <Tests/legacyTests/LEDtest.h>
-#include <Tests/legacyTests/PinTest.h>
-#include <Tests/legacyTests/PWMtest.h>
-#include <Tests/legacyTests/SDCardTest.h>
-#include <Tests/legacyTests/SPI_FRAM_RTCtest.h>
-#include <Tests/legacyTests/SupervisorTest.h>
-#include <Tests/legacyTests/TimeTest.h>
-#include <Tests/legacyTests/UARTtest.h>
-#include <Tests/legacyTests/USBdeviceTest.h>
 
 #define ENABLE_MAIN_TRACES 1
 #if ENABLE_MAIN_TRACES
@@ -146,7 +153,7 @@ Boolean selectAndExecuteTest() {
 		offerMoreTests = boardTest();
 		break;
 	case 14:
-		offerMoreTests = TimeTest();
+		offerMoreTests = timeTest();
 		break;
 	case 15:
 		offerMoreTests = checksumTest();

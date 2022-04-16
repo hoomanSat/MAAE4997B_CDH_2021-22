@@ -166,7 +166,7 @@ void taskEpochTest() {
 
 }
 
-Boolean TimeTest() {
+Boolean timeTest() {
 	xTaskHandle taskTimeTestHandle;
 
 	xTaskGenericCreate(taskEpochTest, (const signed char*)"taskEpochTest", 1024, NULL, 2, &taskTimeTestHandle, NULL, NULL);
