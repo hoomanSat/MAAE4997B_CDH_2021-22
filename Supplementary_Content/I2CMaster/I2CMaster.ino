@@ -1,10 +1,12 @@
 // I2C Master Mode
-// Sends to Address 0x50
+// Sends to Address 0x5D
 // Waits for character entered from serial monitor
 // 1 + enter = Read from device
 // 2 + enter = Send message 
 
 #include <Wire.h>
+
+const char* message = "Hello iOBC";
 
 void setup()
 {
@@ -14,8 +16,8 @@ void setup()
   int incoming = 0;
 }
 
-void sendMessage(String message){
-  Wire.beginTransmission(0x50);
+void sendMessage(){
+  Wire.beginTransmission(0x5D);
   Wire.write(message);
   Wire.endTransmission();
 }
@@ -23,7 +25,7 @@ void sendMessage(String message){
 
 void readMessage(){
   Serial.print("Incoming message: ");
-  Wire.requestFrom(0x50, 1);
+  Wire.requestFrom(0x5D, 1);
   Serial.println(Wire.read());
 }
 
@@ -32,7 +34,7 @@ void loop(){
   if (incoming == 49){
     readMessage();
   }
-  if (incoming == 50){
-    sendMessage("Hello iOBC");
+  while(1){ //ing == 50)
+    sendMessage();
   }
 }

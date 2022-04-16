@@ -5,7 +5,7 @@
 void setup()
 {
   Wire.begin(0x41);
-  Wire.setClock(400000);
+  Wire.setClock(100000);
   
   Wire.onReceive(receiveEvent);
   Wire.onRequest(requestEvent);
