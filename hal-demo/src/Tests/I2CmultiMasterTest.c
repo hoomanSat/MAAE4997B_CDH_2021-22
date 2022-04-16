@@ -34,13 +34,13 @@ static int bytesRead = 0; //tracks bytes read into a packet and can be error cod
  * to send a response. assuming you figure out how to integrate these old drivers with CSP.
  */
 static I2CslaveCommandList MMCommandList[] = {	{.command = 0x54, .commandParameterSize = 31, .hasResponse = FALSE},
-												{.command = 0xAB, .commandParameterSize = 31, .hasResponse = FALSE},
+												{.command = 0x48, .commandParameterSize = 31, .hasResponse = FALSE},
 												{.command = 0xAC, .commandParameterSize = 31, .hasResponse = FALSE},
 												{.command = 0xAD, .commandParameterSize = 31, .hasResponse = FALSE},
 												{.command = 0x00, .commandParameterSize = 255, .hasResponse = FALSE},
 											};//Last line is an example of a line that should capture any CSP packet capped at 256 byte length, no other lines required - untested
 
-
+static int bytesRead;
 static unsigned char I2CMMcommandBuffer[32] = {0}; //Used to capture the incoming data packet in a data structure
 
 #define TEST_SLAVE_ADR 0x5D //our slave address
@@ -63,12 +63,12 @@ xTaskHandle halSlaveHandle;
  * BLOCKING
  */
 void halSlaveTest() {
-	int bytesRead, bytesWritten, bytesToWrite;
+	int bytesWritten, bytesToWrite;
 	unsigned int i, commandListSize = sizeof(MMCommandList) / sizeof(MMCommandList[0]);
 	unsigned int commandCount = 0;
 	unsigned char WriteBuffer[I2C_SLAVE_RECEIVE_BUFFER_SIZE + sizeof(unsigned int)];
 	//printf("\nSlaveTest Task starts \n\r");
-	while(1) {
+
 		// Call I2Cslave_read which will block (make this task sleep until I2C master sends a command).
 		bytesRead = I2Cslave_read(I2CMMcommandBuffer);
 		if(bytesRead < 0) {
@@ -81,9 +81,9 @@ void halSlaveTest() {
 		commandCount++;
 
 		// Print out the received command
-		TRACE_DEBUG_WP("taskI2CslaveTest: received command: \n\r");
-		UTIL_DbguDumpArrayBytes(I2CMMcommandBuffer, bytesRead);
-		printf("\nAttempt to read input as string: %s\n", I2CMMcommandBuffer);
+		//TRACE_DEBUG_WP("taskI2CslaveTest: received command and data: \n\r");
+		//UTIL_DbguDumpArrayBytes(I2CMMcommandBuffer, bytesRead);
+		//printf("\nAttempt to read input as string: %s\n", I2CMMcommandBuffer);
 
 		// Check which command was received
 		for(i=0; i<commandListSize; i++) {
@@ -117,9 +117,6 @@ void halSlaveTest() {
 		if(i == commandListSize) {
 			printf("taskI2CslaveTest: Ignored an invalid command sent by I2C master. \n");
 		}
-
-	}
-
 }
 
 void initHalSlave(){
@@ -130,7 +127,7 @@ void initHalSlave(){
 	if(retValInt != 0) {
 		TRACE_FATAL("\n\r I2CslaveTest: I2Cslave_start returned: %d! \n\r", retValInt);
 	}
-	xTaskGenericCreate(halSlaveTest, (const signed char*)"halSlaveTest", 1024, NULL, configMAX_PRIORITIES-2, &halSlaveHandle, NULL, NULL);
+
 }
 
 
@@ -138,11 +135,12 @@ void initHalMaster(){
 	TRACE_DEBUG_WP("Init Master Mode \n\r");
 
 	I2Cslave_stop();
-	vTaskDelete(halSlaveHandle);
 
-	int retValInt = I2C_start(400000, 1000);//2nd param can be 'portMAX_DELAY' for debug step through to prevent timeout.
+	int retValInt = I2C_start(100000, 1000);//2nd param can be 'portMAX_DELAY' for debug step through to prevent timeout.
 	if(retValInt != 0) {
 		csp_log_error("\n\r I2Ctest: I2C_start returned: %d! \n\r", retValInt);
+		csp_log_info("\n\r Try to switch to slave \n\r");
+		I2CModeRequested = SLAVE_MODE;
 	}
 	I2CModeCurrent = MASTER_MODE;
 }
@@ -168,10 +166,10 @@ int mastermodeWriteReadProcess() {
 	i2cTx.writeData = writeOut;
 	i2cTx.writeSize = 19;
 	i2cTx.writeReadDelay = 1;
-	i2cTx.slaveAddress = 0x42;// <--------------SLAVE TARGET
+	i2cTx.slaveAddress = 0x41;// <--------------SLAVE TARGET
 
 
-		TRACE_DEBUG_WP("To 42 Sending I2CRequest to Slave via writeRead() \n\r");
+		TRACE_DEBUG_WP("MASTER OUPUT To 41 Sending I2CRequest to Slave via writeRead() \n\r");
 
 		retValInt = I2C_writeRead(&i2cTx); // Use I2C_writeRead instead of our own implementation.
 		if(retValInt != 0) {
@@ -179,7 +177,7 @@ int mastermodeWriteReadProcess() {
 			return retValInt;
 		}
 
-		TRACE_DEBUG_WP(" Message received back: \n\r");
+		TRACE_DEBUG_WP("\n\rMessage received back: \n\r");
 		TRACE_DEBUG_WP("%c", readData[0]);
 		for(i=1; i<i2cTx.readSize; i++) {
 			TRACE_DEBUG_WP("%c", readData[i]);
@@ -189,6 +187,12 @@ int mastermodeWriteReadProcess() {
 		for(i=1; i<i2cTx.readSize; i++) {
 			TRACE_DEBUG_WP("%02X", readData[i]);
 		}
+
+		// Print out the last recieved slave command and data - prevents spam of debug console
+		TRACE_DEBUG_WP("\n\r\n\rhalSlaveTest: LAST INPUT RECIEVED: received command and data: \n\r");
+		UTIL_DbguDumpArrayBytes(I2CMMcommandBuffer, bytesRead);
+		printf("\n\rAttempt to read input as string: %s \n\r", I2CMMcommandBuffer);
+
 		TRACE_DEBUG_WP("\n\r");
 		TRACE_DEBUG_WP(" \n\r\n\r");
 		return retValInt;
@@ -210,9 +214,11 @@ void multimasterDirector(){
 			if(I2CModeRequested == SLAVE_MODE){
 				//TRACE_DEBUG_WP("Mode Switch to slave \n\r")
 				initHalSlave();
+				I2CModeCurrent = SLAVE_MODE;
 			}else if (I2CModeRequested == MASTER_MODE){
 				//TRACE_DEBUG_WP("Mode Switch to master \n\r")
 				initHalMaster();
+				I2CModeCurrent = MASTER_MODE;
 			}else{
 				TRACE_ERROR("I2CModeRequested was set to unexpected value \n\r");
 				exit(1);
