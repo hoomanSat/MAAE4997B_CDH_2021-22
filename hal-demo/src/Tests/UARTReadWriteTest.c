@@ -25,14 +25,14 @@
 
 void taskUARTReadWriteTest(void *arguments) {
 	int UART_Response_Code = 0;
-	unsigned int readSize = 32;
-	unsigned char readData[32] = {0};
+	unsigned int readSize = 13;
+	unsigned char readData[13] = {0};
 	//unsigned char writeData[16] = {0};
 	UARTbus bus = *((UARTbus*)arguments);
 	unsigned char* output = "Hello Arduino!\n\r";
 	unsigned int outputSize = 18;
 
-
+	printf("Start Test \n\r", bus);
 	while(1) {
 		UART_Response_Code = UART_read(bus, readData, readSize);
 		if(UART_Response_Code != 0) {
@@ -51,10 +51,14 @@ void taskUARTReadWriteTest(void *arguments) {
 			printf("Successful Transmission on bus: %d \n", bus);
 		}
 
-		vTaskDelay(10);
+		vTaskDelay(0);
 	}
 }
 
+
+/*
+ * Unable to Verify This test code works, encountered 'issues' with arduinos during test.
+ */
 Boolean UARTReadWriteTest() {
 	int UART_Response_Code = 0;
 	//unsigned int bus2type = 0;
@@ -87,12 +91,10 @@ Boolean UARTReadWriteTest() {
 
 	// Instantiate two separate versions of taskUARTtest and pass different bus-id's as a parameter.
 	xTaskGenericCreate(taskUARTReadWriteTest, (const signed char*)"UARTtest-0", 1024, (void*)&UARTtestBus[0], 2, &UART0testHandle, NULL, NULL);
-	xTaskGenericCreate(taskUARTReadWriteTest, (const signed char*)"UARTtest-2", 1024, (void*)&UARTtestBus[1], 2, &UART2testHandle, NULL, NULL);
+	//xTaskGenericCreate(taskUARTReadWriteTest, (const signed char*)"UARTtest-2", 1024, (void*)&UARTtestBus[1], 2, &UART2testHandle, NULL, NULL);
 
 
 	printf("\n\n\r");
-
-	vTaskDelay(0);
 
 	return FALSE;
 }

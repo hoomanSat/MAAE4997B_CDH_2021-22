@@ -5,7 +5,17 @@
  *      Author: Tyler
  */
 
-#include <Tests/FreeRTOSTest.h>
+#include <csp/csp_debug.h>
+#include <csp/arch/csp_thread.h>
+#include <csp/arch/csp_clock.h>
+#include <csp/arch/csp_time.h>
+#include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_semaphore.h>
+
+#include <hal/boolean.h>
+
+#include <stdlib.h>
 
 static bool thread_executed = false;
 

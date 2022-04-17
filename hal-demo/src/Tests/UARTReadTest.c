@@ -27,7 +27,7 @@
 void taskUARTReadTest(void *arguments) {
 	int UART_Response_Code = 0;
 	unsigned int readSize = 5;
-	unsigned char readData[5] = {0};
+	unsigned char readData[5] = {0}; //Should be 1 longer then input string, a duplicate final character will be captured
 	UARTbus bus = *((UARTbus*)arguments);
 
 	while(1) {
@@ -44,6 +44,11 @@ void taskUARTReadTest(void *arguments) {
 	}
 }
 
+/*
+ * Verified test works, NOTE that the read buffer needs to be 1 longer then the string
+ * sent to iOBC, a hidden character is being sent. We seem to indicate a delay of
+ * 0 is required on the test task Delay.
+ */
 Boolean UARTReadTest() {
 	int UART_Response_Code = 0;
 	xTaskHandle UART0testHandle;
@@ -76,11 +81,9 @@ Boolean UARTReadTest() {
 
 	// Instantiate two separate versions of UARTtest and pass different bus-id's as a parameter.
 	xTaskGenericCreate(taskUARTReadTest, (const signed char*)"UARTtest-0", 1024, (void*)&UARTtestBus[0], 2, &UART0testHandle, NULL, NULL);
-	xTaskGenericCreate(taskUARTReadTest, (const signed char*)"UARTtest-2", 1024, (void*)&UARTtestBus[1], 2, &UART2testHandle, NULL, NULL);
+	//xTaskGenericCreate(taskUARTReadTest, (const signed char*)"UARTtest-2", 1024, (void*)&UARTtestBus[1], 2, &UART2testHandle, NULL, NULL);
 
 	printf("\n\n\r");
-
-	vTaskDelay(0); // Must have no delay otherwise you may lose data
 
 	return FALSE;
 }

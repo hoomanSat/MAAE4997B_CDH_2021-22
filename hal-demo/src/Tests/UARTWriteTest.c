@@ -42,10 +42,13 @@ void taskUARTWriteTest(void *arguments) {
 			printf("Successful Transmission on bus: %d \n\r", bus);
 		}
 
-		vTaskDelay(1000);
+		vTaskDelay(0);
 	}
 }
 
+/*
+ * Test is not verified
+ */
 Boolean UARTWriteTest() {
 	int UART_Response_Code = 0;
 	xTaskHandle UART0testHandle;

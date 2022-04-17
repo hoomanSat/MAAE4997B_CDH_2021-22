@@ -6,7 +6,28 @@
  *      Author: Dante Corsi
  */
 
-#include <Tests/TaskSequenceTimeTest.h> // all includes are enclosed in the header file
+#include <at91/commons.h>
+#include <at91/utility/trace.h>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/FreeRTOSConfig.h>
+#include <freertos/task.h>
+#include <freertos/semphr.h>
+#include <freertos/timers.h>
+#include <freertos/projdefs.h>
+#include <freertos/portable/GCC/ARM9_AT91SAM9G20/portmacro.h>
+
+#include <hal/boolean.h>
+#include <hal/errors.h>
+#include <hal/supervisor.h>
+#include <hal/Drivers/SPI.h>
+#include <hal/Drivers/LED.h>
+#include <hal/Drivers/I2C.h>
+#include <hal/Timing/Time.h>
+#include <hal/Timing/RTC.h>
+
+#include <stdlib.h>
+#include <string.h>
 
 // Initialization
 #define DEFAULT_PRIORITY	2					// default task priority level
@@ -289,6 +310,9 @@ void taskCommandSequencerI2C()
 
 }*/
 
+/*
+ * Test verified - After 30 seconds task 1 runs, after 50 seconds task 1 runs again
+ */
 Boolean TaskSequenceTimeTest()
 {
 	// initialise time on RTC
