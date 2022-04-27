@@ -1,19 +1,10 @@
 # MAAE4997B_CDH
 C&amp;DH Team's work for 2021-2022
 
-1 - I2C Multimaster Issue still at large  
-  Included test will demonstrate a mode switching capability with the HAL I2C Drivers
+Please read the "CuSAT-CDH-DESG-001-ENV_SETUP_GUIDE.pdf" to get up and running with the 
+Demo code we made in the 2021-2022 year.
 
-TODO BELOW
+It will show you how to get setup with a modern version of eclipse and the steps
+required to run our code on the iOBC with 3 labs outlined for you to try.
 
-2 - iOBC Data Interface Testing
-  a) I2C
-  b) UART
-  c) SPI
-  d) PWM
-  e) GPIO
-  f) ADC
-  
-3 - FLATSAT Testing
-
-4 - Test Data Storage in FRAM and SD Cards
+Find the file "CuSAT-CDH-DESG-001.docx" for the version you can edit and update.
